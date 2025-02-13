@@ -11,27 +11,46 @@ export async function GET() {
 				title: true,
 				content: true,
 				image: true,
+				categories: {
+					select: {
+						id: true,
+						name: true,
+						slug: true,
+					},
+				},
 				date: true
 			}
 		});
 
 		const categories = await prisma.category.findMany({
-			include: {
+			select: {
+				id: true,
+				name: true,
+				slug: true,
 				_count: {
-					select: { newsPosts: true }
-				}
-			}
+					select: {
+						newsPosts: true, // Ensure this is being fetched
+					},
+				},
+			},
 		});
 
-		return NextResponse.json<NewsPost[]>(posts);
+		console.log("Fetched categories bb:", JSON.stringify(categories, null, 2)); // Debugging
+
+
+
+		return NextResponse.json({ posts, categories }); // Ensure categories are included
 	} catch (error) {
-		console.error('News API Error:', error);
+		console.error("News API Error:", error);
 		return NextResponse.json(
-			{ error: 'Failed to fetch news posts' },
+			{ error: "Failed to fetch news posts" },
 			{ status: 500 }
 		);
 	}
 }
+
+
+
 
 export async function POST(req) {
 	try {

@@ -11,13 +11,14 @@ import Button from "@/components/ui/button";
 import ImageUpload from "@/components/Admin/ImageUpload";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import type { PageContent, GalleryImage } from "@prisma/client";
+import CategorySidebar from "@/components/layout/CategorySidebar";
 
 interface GalleryPageProps {
   galleryContent: PageContent | null;
   initialImages: GalleryImage[];
 }
 
-export default function GalleryPageClient({ galleryContent, initialImages }: GalleryPageProps) {
+export default function GalleryPageClient({ galleryContent, initialImages, categories }: GalleryPageProps) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
@@ -31,6 +32,9 @@ export default function GalleryPageClient({ galleryContent, initialImages }: Gal
   const [showAddImage, setShowAddImage] = useState(false);
   const [newImage, setNewImage] = useState({ title: "", description: "", imageUrl: "" });
   const [modalImage, setModalImage] = useState<GalleryImage | null>(null);
+  const [categoryList, setCategoryList] = useState<Category[]>(categories);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
@@ -128,6 +132,22 @@ export default function GalleryPageClient({ galleryContent, initialImages }: Gal
       }
     });
 
+  useEffect(() => {
+    fetch("/api/gallery")
+      .then((res) => res.json())
+      .then((data: { categoryList: Category[] }) => { // Explicit type
+        console.log("Fetched categories:", data.categoryList);
+        if (data.categoryList) {
+          setCategoryList(data.categoryList);
+        }
+      })
+      .catch((error) => console.error("Error fetching categories:", error));
+  }, []);
+
+
+
+
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -201,119 +221,130 @@ export default function GalleryPageClient({ galleryContent, initialImages }: Gal
         </div>
       )}
 
-      <section className="py-16 bg-gradient-to-b from-ss-white to-ss-blue/10">
-        <div className="container mx-auto px-4">
-          <h2 className="text-5xl font-semibold text-center mb-6">Community Photos</h2>
+      {/* Sidebar and Main Content */}
+      <div className="flex flex-grow">
+        {/* Category Sidebar */}
+        <CategorySidebar
+          categories={categories}
+          basePath="gallery" // This ensures the links are relative to "news"
 
-          {/* Search and Sort */}
-          <div className="flex justify-evenly mb-6">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search for images..."
-              className="w-1/3 p-2 border rounded"
-            />
+        />
 
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              className="p-2 border rounded"
-            >
-              <option value="newest">Newest to Oldest</option>
-              <option value="oldest">Oldest to Newest</option>
-            </select>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredImages.length === 0 ? (
-              <p className="text-center text-gray-600">No images available.</p>
-            ) : (
-              filteredImages.map((item) => (
-                <Card key={item.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                  <div className="relative">
-                    <div
-                      className="relative w-full h-56 overflow-hidden cursor-pointer"
-                      onClick={() => setModalImage(item)}
-                    >
-                      <CardHeader className="p-0">
-                        <div className="absolute inset-0">
-                          <Image
-                            src={item.imageUrl}
-                            alt={item.title}
-                            fill
-                            className="rounded-t-lg "
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          />
-                        </div>
-                      </CardHeader>
+
+        <section className="py-16 bg-gradient-to-b from-ss-white to-ss-blue/10">
+          <div className="container mx-auto px-4">
+            <h2 className="text-5xl font-semibold text-center mb-6">Community Photos</h2>
+
+            {/* Search and Sort */}
+            <div className="flex justify-evenly mb-6">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search for images..."
+                className="w-1/3 p-2 border rounded"
+              />
+
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                className="p-2 border rounded"
+              >
+                <option value="newest">Newest to Oldest</option>
+                <option value="oldest">Oldest to Newest</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredImages.length === 0 ? (
+                <p className="text-center text-gray-600">No images available.</p>
+              ) : (
+                filteredImages.map((item) => (
+                  <Card key={item.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div className="relative">
+                      <div
+                        className="relative w-full h-56 overflow-hidden cursor-pointer"
+                        onClick={() => setModalImage(item)}
+                      >
+                        <CardHeader className="p-0">
+                          <div className="absolute inset-0">
+                            <Image
+                              src={item.imageUrl}
+                              alt={item.title}
+                              fill
+                              className="rounded-t-lg "
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            />
+                          </div>
+                        </CardHeader>
+                      </div>
+
+                      <CardContent>
+                        <CardTitle className="text-2xl font-bold text-ss-blue mb-2">{item.title}</CardTitle>
+                        <p className="text-ss-black">{item.description}</p>
+
+                        {isAdmin && (
+                          <div className="mt-4 flex justify-between">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditImage(item);
+                              }}
+                              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteImage(item.id);
+                              }}
+                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </CardContent>
                     </div>
-
-                    <CardContent>
-                      <CardTitle className="text-2xl font-bold text-ss-blue mb-2">{item.title}</CardTitle>
-                      <p className="text-ss-black">{item.description}</p>
-
-                      {isAdmin && (
-                        <div className="mt-4 flex justify-between">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditImage(item);
-                            }}
-                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteImage(item.id);
-                            }}
-                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
-      {modalImage && (
-        <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fade-in"
-          onClick={() => setModalImage(null)}
-        >
-          <div
-            className="relative max-w-4xl w-full mx-4 bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-2xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <XMarkIcon
-              className="absolute top-2 right-2 w-10 h-10 text-white cursor-pointer"
-              onClick={closeModal}
-            />
-            <Image
-              src={modalImage.imageUrl}
-              alt={modalImage.title}
-              width={1000}
-              height={1000}
-              className="rounded-t-xl"
-            />
-            <div className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">{modalImage.title}</h2>
-              <p>{modalImage.description}</p>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
-        </div>
-      )}
+        </section>
 
+        {modalImage && (
+          <div
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fade-in"
+            onClick={() => setModalImage(null)}
+          >
+            <div
+              className="relative max-w-4xl w-full mx-4 bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <XMarkIcon
+                className="absolute top-2 right-2 w-10 h-10 text-white cursor-pointer"
+                onClick={closeModal}
+              />
+              <Image
+                src={modalImage.imageUrl}
+                alt={modalImage.title}
+                width={1000}
+                height={1000}
+                className="rounded-t-xl"
+              />
+              <div className="p-6">
+                <h2 className="text-2xl font-semibold mb-4">{modalImage.title}</h2>
+                <p>{modalImage.description}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
       <Footer />
     </div>
   );
 }
-

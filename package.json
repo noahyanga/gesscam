@@ -29,6 +29,7 @@
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
     "framer-motion": "^12.4.1",
+    "html-react-parser": "^5.2.2",
     "immutable": "^5.0.3",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.471.1",

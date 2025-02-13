@@ -13,10 +13,30 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 			return NextResponse.json({ error: "Image not found" }, { status: 404 });
 		}
 
-		return NextResponse.json(image, { status: 200 });
+		const categories = await prisma.category.findMany({
+			select: {
+				id: true,
+				name: true,
+				slug: true,
+				_count: {
+					select: {
+						galleryPosts: true, // Ensure this is being fetched
+					},
+				},
+			},
+		});
+
+		console.log("Fetched categories bb:", JSON.stringify(categories, null, 2)); // Debugging
+
+
+
+		return NextResponse.json({ image, categories }); // Ensure categories are included
 	} catch (error) {
-		console.error("API Error:", error);
-		return NextResponse.json({ error: "Failed to fetch image" }, { status: 500 });
+		console.error("News API Error:", error);
+		return NextResponse.json(
+			{ error: "Failed to fetch news posts" },
+			{ status: 500 }
+		);
 	}
 }
 

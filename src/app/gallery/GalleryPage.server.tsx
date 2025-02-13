@@ -9,7 +9,7 @@ export default async function GalleryPageWrapper() {
 
   const session = await getServerSession(authOptions);
 
-  const [galleryContent, galleryImages] = await Promise.all([
+  const [galleryContent, galleryImages, categories] = await Promise.all([
     prisma.pageContent.findUnique({
       where: { pageSlug: 'gallery' }
     }),
@@ -22,6 +22,15 @@ export default async function GalleryPageWrapper() {
         imageUrl: true,
         date: true
       }
+    }),
+
+    prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        _count: { select: { galleryPosts: true } } // Fetch gallery post count
+      }
     })
   ]);
 
@@ -30,6 +39,7 @@ export default async function GalleryPageWrapper() {
       <GalleryPageClient
         galleryContent={galleryContent}
         initialImages={galleryImages}
+        categories={categories}
       />
     </SessionProviderWrapper>
   );

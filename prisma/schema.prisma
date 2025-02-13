@@ -74,7 +74,7 @@ model Category {
   id           String        @id @default(uuid())
   name         String
   slug         String        @unique
-  newsPosts    NewsPost[]
+  newsPosts    NewsPost[]    @relation("CategoryToNews")
   galleryPosts GalleryImage[]
   createdAt    DateTime      @default(now())
 }
@@ -86,8 +86,9 @@ model NewsPost {
   image      String
   date       DateTime   @default(now())
   comments   Comment[]
-  categories Category[]  // Many-to-many relationship
+  categories Category[] @relation("CategoryToNews") // Many-to-many relation
 }
+
 
 model GalleryImage {
   id          String     @id @default(uuid())

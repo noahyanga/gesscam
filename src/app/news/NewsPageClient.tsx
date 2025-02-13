@@ -11,12 +11,24 @@ import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/layout/HeroSection";
 import Button from "@/components/ui/button";
 import ImageUpload from "@/components/admin/ImageUpload";
+import CategorySidebar from "@/components/layout/CategorySidebar";
+import parse from 'html-react-parser';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Load React-Quill dynamically to prevent SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
 
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  _count: {
+    newsPosts: number;
+  };
+}
+// NewsPageProps interface
 interface NewsPageProps {
   newsContent: {
     title: string;
@@ -29,10 +41,13 @@ interface NewsPageProps {
     content: string;
     image: string;
     date: string;
+    categories: { id: string; name: string; slug: string }[]; // Categories associated with the post
   }[];
+  categories: Category[]; // Categories passed as prop
 }
 
-export default function NewsPageClient({ newsContent, initialPosts }: NewsPageProps) {
+
+export default function NewsPageClient({ newsContent, initialPosts, categories }: NewsPageProps) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
@@ -46,6 +61,10 @@ export default function NewsPageClient({ newsContent, initialPosts }: NewsPagePr
 
   const [showAddPost, setShowAddPost] = useState(false);
   const [newPost, setNewPost] = useState({ title: "", content: "", image: "" });
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categoryList, setCategoryList] = useState<Category[]>(categories);
+
+
 
   // Search and Filter States
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,10 +149,31 @@ export default function NewsPageClient({ newsContent, initialPosts }: NewsPagePr
     }
   };
 
-  function stripHtml(html) {
+  function stripHtml(html: string) {
+    if (typeof window === 'undefined') {
+      // Simple server-side compatible stripping
+      return html.replace(/<[^>]*>?/gm, '').substring(0, 150);
+    }
+
     const doc = new DOMParser().parseFromString(html, "text/html");
-    return doc.body.textContent || "";
+    const text = doc.body.textContent || "";
+    return text.length > 150 ? `${text.substring(0, 150)}...` : text;
   }
+
+  useEffect(() => {
+    fetch("/api/news")
+      .then((res) => res.json())
+      .then((data: { categoryList: Category[] }) => { // Explicit type
+        console.log("Fetched categories:", data.categoryList);
+        if (data.categoryList) {
+          setCategoryList(data.categoryList);
+        }
+      })
+      .catch((error) => console.error("Error fetching categories:", error));
+  }, []);
+
+
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -141,8 +181,8 @@ export default function NewsPageClient({ newsContent, initialPosts }: NewsPagePr
 
       {/* Hero Section */}
       <HeroSection
-        title={title || 'News'}
-        heroImage={heroImage}
+        title={newsContent?.title || 'News'}
+        heroImage={newsContent?.heroImage}
         isAdmin={isAdmin}
         onEditClick={() => setEditHero(true)}
       />
@@ -151,7 +191,6 @@ export default function NewsPageClient({ newsContent, initialPosts }: NewsPagePr
       {isAdmin && editHero && (
         <div className="container mx-auto px-4 mt-6">
           <h2 className="text-2xl font-bold mb-4">Edit News Page</h2>
-
           <label className="block text-sm font-medium mb-2">Title</label>
           <input
             type="text"
@@ -198,67 +237,90 @@ export default function NewsPageClient({ newsContent, initialPosts }: NewsPagePr
         </div>
       )}
 
-      {/* Search Bar and Filter */}
-      <section className="container mx-auto px-4 mt-8">
-        <h2 className="text-5xl font-bold text-center mb-4">News Feed</h2>
-        <div className="flex justify-evenly">
-          <input
-            type="text"
-            placeholder="Search posts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-1/2 p-3 border rounded"
-          />
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="p-3 border rounded"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-          </select>
-        </div>
-      </section>
+      {/* Sidebar and Main Content */}
+      <div className="flex flex-grow">
+        {/* Category Sidebar */}
+        <CategorySidebar
+          categories={categories}
+          basePath="news" // This ensures the links are relative to "news"
 
-      {/* News Posts */}
-      <section className="container mx-auto px-4 mt-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4 mb-6">
-          {filteredPosts.map((post) => (
-            <Card key={post.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition duration-300">
-              <CardHeader>
-                <div className="relative w-full h-56">
-                  <Image src={post.image} alt={post.title} fill className="rounded-t-lg object-cover" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardTitle>{post.title}</CardTitle>
-                <p className="text-sm text-gray-600">{new Date(post.date).toDateString()}</p>
-                <p>
-                  {(() => {
-                    const textContent = stripHtml(post.content);
-                    return textContent.length > 150 ? `${textContent.substring(0, 150)}...` : textContent;
-                  })()}
-                </p>
-                <Link href={`/news/${post.id}`} className="bg-ss-blue text-white max-w-24 px-3 py-2 rounded block mt-4">
-                  Read More
-                </Link>
+        />
 
 
+        {/* Main content */}
+        <main className="flex-grow p-4">
+          {/* Search Bar and Filter */}
+          <section className="container mx-auto px-4 mt-8">
+            <h2 className="text-5xl font-bold text-center mb-4">News Feed</h2>
+            <div className="flex justify-evenly">
+              <input
+                type="text"
+                placeholder="Search posts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-1/2 p-3 border rounded"
+              />
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="p-3 border rounded"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </div>
+          </section>
 
-                {isAdmin && (
-                  <div className="mt-4 flex justify-between">
-                    <Link href={`/news/${post.id}/edit`} className="bg-blue-500 text-white px-2 py-2 rounded">Edit</Link>
-                    <Button onClick={() => handleDeletePost(post.id)} className="bg-red-500">Delete</Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+          {/* News Posts */}
+          <section className="container mx-auto px-4 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4 mb-6">
+              {filteredPosts.map((post) => (
+                <Card key={post.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition duration-300">
+                  <CardHeader>
+                    <div className="relative w-full h-56">
+                      <Image src={post.image} alt={post.title} fill className="rounded-t-lg object-cover" />
+
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <CardTitle>{post.title}</CardTitle>
+                    <p className="text-sm text-gray-600">{new Date(post.date).toDateString()}</p>
+
+                    {/* Category under the date */}
+                    {post.categories && (
+                      <p className="text-sm font-semibold text-ss-blue">
+                        {post.categories.map((cat) => cat.name).join(", ")}
+                      </p>
+                    )}
+
+                    <p>
+                      {(() => {
+                        const textContent = stripHtml(post.content);
+                        return textContent.length > 150 ? `${textContent.substring(0, 150)}...` : textContent;
+                      })()}
+                    </p>
+
+                    <Link href={`/news/${post.id}`} className="bg-ss-blue text-white max-w-24 px-3 py-2 rounded block mt-4">
+                      Read More
+                    </Link>
+
+                    {isAdmin && (
+                      <div className="mt-4 flex justify-between">
+                        <Link href={`/news/${post.id}/edit`} className="bg-blue-500 text-white px-2 py-2 rounded">Edit</Link>
+                        <Button onClick={() => handleDeletePost(post.id)} className="bg-red-500">Delete</Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+
+        </main>
+      </div>
 
       <Footer />
     </div>
   );
 }
-

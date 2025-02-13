@@ -8,8 +8,8 @@ export default async function NewsPageWrapper() {
   // Fetch session on the server-side
   const session = await getServerSession(authOptions);
 
-  // Fetch news content and posts from the database
-  const [newsContent, initialPosts] = await Promise.all([
+  // Fetch news content, posts, and categories from the database
+  const [newsContent, initialPosts, categories] = await Promise.all([
     prisma.pageContent.findUnique({
       where: { pageSlug: "news" }
     }),
@@ -22,15 +22,25 @@ export default async function NewsPageWrapper() {
         image: true,
         date: true
       }
+    }),
+    prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        _count: { select: { newsPosts: true } } // Ensure this is included
+      }
     })
+
   ]);
 
-  // Return the NewsPageClient component with the fetched content and session
+  // Return the NewsPageClient component with the fetched content, posts, categories, and session
   return (
     <SessionProviderWrapper session={session}>
       <NewsPageClient
         newsContent={newsContent}
         initialPosts={initialPosts}
+        categories={categories}
       />
     </SessionProviderWrapper>
   );
