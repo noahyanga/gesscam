@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  username  String    @unique
+  password  String
+  role      String    @default("user")
+  createdAt DateTime  @default(now())
+
+  comments  Comment[]
+}
+
+
+model PageContent {
+  id        String      @id @default(uuid())
+  pageSlug  String      @unique
+  title     String
+  content   String   @db.Text  // Use Text for larger content
+  heroImage String
+  images    String[]
+  updatedAt DateTime    @updatedAt
+}
+
+model AboutPost {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text  // Allows formatted content (HTML)
+  date      DateTime @default(now())
+}
+
+model HomePost {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   @db.Text  // Allows formatted content (HTML)
+}
+
+model ExecMember {
+  id        String   @id @default(uuid())
+  name      String
+  position  String
+  imageUrl  String
+  order     Int
+  createdAt DateTime @default(now())
+}
+
+
+model Comment {
+  id        String    @id @default(uuid())
+  content   String
+  post      NewsPost  @relation(fields: [postId], references: [id])
+  postId    String
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime  @default(now())
+}
+
+model Category {
+  id           String        @id @default(uuid())
+  name         String
+  slug         String        @unique
+  newsPosts    NewsPost[]
+  galleryPosts GalleryImage[]
+  createdAt    DateTime      @default(now())
+}
+
+model NewsPost {
+  id         String     @id @default(uuid())
+  title      String
+  content    String
+  image      String
+  date       DateTime   @default(now())
+  comments   Comment[]
+  categories Category[]  // Many-to-many relationship
+}
+
+model GalleryImage {
+  id          String     @id @default(uuid())
+  title       String
+  description String
+  imageUrl    String
+  date        DateTime   @default(now())
+  categories  Category[]  // Many-to-many relationship
+}
