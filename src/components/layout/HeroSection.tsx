@@ -22,7 +22,7 @@ export default function HeroSection({
   onEditClick
 }: HeroProps) {
   return (
-    <section className="relative h-[80vh] flex items-center justify-center">
+    <section className="relative h-[75vh] flex items-center justify-center">
       <Image
         src={heroImage}
         alt={title}
@@ -49,7 +49,7 @@ export default function HeroSection({
             onClick={onEditClick}
             className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
           >
-            Edit Hero Image
+            Edit Image
           </button>
         )}
       </div>

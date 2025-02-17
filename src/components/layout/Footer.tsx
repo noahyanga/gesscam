@@ -1,71 +1,115 @@
 import Link from 'next/link';
-import Button from "@/components/ui/button";
-import { FacebookIcon, TwitterIcon, InstagramIcon, Mail, DollarSign, MapPin } from 'lucide-react';
+import { FacebookIcon, TwitterIcon, InstagramIcon, Mail, DollarSign, MapPin, ExternalLink } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer id="contact" className="bg-ss-blue text-ss-white py-12">
-      <div className="container mx-auto px-4">
+    <footer id="contact" className="relative bg-gradient-to-t from-ss-blue to-ss-blue/90 text-ss-white">
+      {/* Decorative top border */}
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-ss-yellow via-ss-white to-ss-yellow opacity-100" />
+
+      <div className="container mx-auto px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          <div className="space-y-4">
-            <h3 className="text-3xl font-bold mb-4 border-b-2 border-ss-yellow inline-block pb-2">Contact</h3>
-            <div className="flex items-center space-x-3">
-              <Mail className="w-5 h-5 text-ss-yellow" />
-              <a href="mailto:info@gesscam.ca" className="text-xl hover:text-ss-yellow transition-colors duration-300">info@gesscam.ca</a>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Mail className="w-5 h-5 text-ss-yellow" />
-              <a href="mailto:admin@gesscam.ca" className="text-xl hover:text-ss-yellow transition-colors duration-300">admin@gesscam.ca</a>
+          {/* Contact Section */}
+          <div className="space-y-6">
+            <div className="relative">
+              <h3 className="text-3xl font-bold text-ss-white">
+                Contact
+              </h3>
+              <div className="mt-2 h-0.5 w-12 bg-ss-yellow" />
             </div>
 
-            <div className="flex items-center space-x-3">
-              <Mail className="w-5 h-5 text-ss-yellow" />
-              <a href="tel:+1234567890" className="text-xl hover:text-ss-yellow transition-colors duration-300">(123) 456-8890</a>
+            <div className="space-y-4">
+              <a href="mailto:info@gesscam.ca"
+                className="group flex items-center space-x-3 p-2 -ml-2 rounded-lg hover:bg-white/5 transition-all duration-200">
+                <Mail className="w-5 h-5 text-ss-yellow group-hover:scale-110 transition-transform duration-200" />
+                <span className="text-2xl text-gray-100 group-hover:text-ss-yellow transition-colors duration-200">
+                  info@gesscam.ca
+                </span>
+              </a>
+
+              <a href="mailto:admin@gesscam.ca"
+                className="group flex items-center space-x-3 p-2 -ml-2 rounded-lg hover:bg-white/5 transition-all duration-200">
+                <Mail className="w-5 h-5 text-ss-yellow group-hover:scale-110 transition-transform duration-200" />
+                <span className="text-2xl text-gray-100 group-hover:text-ss-yellow transition-colors duration-200">
+                  admin@gesscam.ca
+                </span>
+              </a>
+
+              <a href="tel:+1234567890"
+                className="group flex items-center space-x-3 p-2 -ml-2 rounded-lg hover:bg-white/5 transition-all duration-200">
+                <Mail className="w-5 h-5 text-ss-yellow group-hover:scale-110 transition-transform duration-200" />
+                <span className="text-2xl text-gray-100 group-hover:text-ss-yellow transition-colors duration-200">
+                  (204) 218-8245
+                </span>
+              </a>
+            </div>
+          </div>
+
+          {/* Donate Section */}
+          <div className="space-y-6">
+            <div className="relative">
+              <h3 className="text-3xl font-bold text-ss-white">
+                Donate
+              </h3>
+              <div className="mt-2 h-0.5 w-12 bg-ss-yellow" />
             </div>
 
+            <a href="mailto:donate@gesscam.ca"
+              className="group flex items-center space-x-3 p-2 -ml-10 rounded-lg hover:bg-white/5 transition-all duration-200">
+              <DollarSign className="w-5 h-5 text-ss-yellow group-hover:scale-110 transition-transform duration-200" />
+              <span className="text-2xl text-gray-100 group-hover:text-ss-yellow transition-colors duration-200">
+                gesscam23@gmail.com
+              </span>
+            </a>
           </div>
-          <div className="space-y-4">
-            <h3 className="text-3xl font-bold mb-4 border-b-2 border-ss-yellow inline-block pb-2">Donate</h3>
-            <div className="flex items-center space-x-3">
-              <DollarSign className="w-5 h-5 text-ss-yellow" />
-              <a href="mailto:info@gesscam.ca" className="text-xl hover:text-ss-yellow transition-colors duration-300">donate@gesscam.ca</a>
+
+          {/* Address Section */}
+          <div className="space-y-6">
+            <div className="relative">
+              <h3 className="text-3xl font-bold text-ss-white">
+                Address
+              </h3>
+              <div className="mt-2 h-0.5 w-12 bg-ss-yellow" />
+            </div>
+
+            <div className="group flex items-start space-x-3 p-2 -ml-2 rounded-lg hover:bg-white/5 transition-all duration-200">
+              <MapPin className="w-5 h-5 text-ss-yellow flex-shrink-0 mt-1 group-hover:scale-110 transition-transform duration-200" />
+              <div className="text-2xl text-gray-100">
+                <p>192 Dagmar Street</p>
+                <p>Winnipeg, Manitoba</p>
+                <p>R3A 0Z3</p>
+              </div>
             </div>
           </div>
-          <div className="space-y-4">
-            <h3 className="text-3xl font-bold mb-4 border-b-2 border-ss-yellow inline-block pb-2">Address</h3>
-            <div className="flex items-start space-x-3">
-              <MapPin className="w-5 h-5 text-ss-yellow flex-shrink-0 mt-1" />
-              <p className='text-xl'>192 Dagmar Street<br />Winnipeg, Manitoba, R3A 0Z3</p>
+
+          {/* Social Media Section */}
+          <div className="space-y-6">
+            <div className="relative">
+              <h3 className="text-3xl font-bold text-ss-white">
+                Follow Us
+              </h3>
+              <div className="mt-2 h-0.5 w-12 bg-ss-yellow" />
             </div>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-3xl font-bold mb-4 border-b-2 border-ss-yellow inline-block pb-2">Follow Us</h3>
-            <div className="mr-8 flex space-x-4">
-              <Button variant="text" className="hover:bg-ss-yellow hover:text-ss-white transition-colors duration-300">
-                <Link href="#" aria-label="Facebook">
-                  <FacebookIcon className="w-8 h-8" />
-                </Link>
-              </Button>
-              <Button variant="text" className="hover:bg-ss-yellow hover:text-ss-white transition-colors duration-300">
-                <Link href="#" aria-label="Twitter">
-                  <TwitterIcon className="w-8 h-8" />
-                </Link>
-              </Button>
-              <Button variant="text" className="hover:bg-ss-yellow hover:text-ss-white transition-colors duration-300">
-                <Link href="#" aria-label="Instagram">
-                  <InstagramIcon className="w-8 h-8" />
-                </Link>
-              </Button>
+
+            <div className="flex space-x-4">
+              <Link href="https://www.facebook.com/profile.php?id=61573386839369"
+                className="p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-200 group">
+                <FacebookIcon className="w-10 h-10 text-gray-100 group-hover:text-ss-yellow group-hover:scale-110 transition-all duration-200" />
+              </Link>
+
             </div>
           </div>
         </div>
-        <div className="mt-12 pt-8 border-t border-ss-white/20 text-center">
-          <p>&copy; 2025 GESSCAM. All rights reserved.</p>
+
+        {/* Copyright Section */}
+        <div className="mt-16 pt-8 border-t border-white/10">
+          <p className="text-gray-300 text-center text-sm">
+            &copy; {new Date().getFullYear()} GESSCAM. All rights reserved.
+          </p>
         </div>
       </div>
-    </footer>
-  )
-}
+    </footer >
+  );
+};
 
-export default Footer
-
+export default Footer;

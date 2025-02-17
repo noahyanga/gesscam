@@ -36,23 +36,4 @@ export async function POST(req: Request) {
 }
 
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-	const { id } = params;
-
-	if (!id) {
-		return NextResponse.json({ error: 'Member ID is required' }, { status: 400 });
-	}
-
-	try {
-		await prisma.homePost.delete({
-			where: { id },
-		});
-
-		return NextResponse.json({ message: 'Member deleted successfully' }, { status: 200 });
-	} catch (error) {
-		console.error('Error deleting executive member:', error);
-		return NextResponse.json({ error: 'Failed to delete executive member' }, { status: 500 });
-	}
-}
-
 

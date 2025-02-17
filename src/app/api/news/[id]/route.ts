@@ -5,6 +5,8 @@ export async function GET(
 	request: Request,
 	{ params }: { params: { id: string } }
 ) {
+
+	const { id } = params;
 	try {
 
 		const post = await prisma.newsPost.findUnique({
@@ -44,22 +46,51 @@ export async function GET(
 }
 
 
-export async function DELETE(req, { params }) {
-	const { id } = params; // Get the post ID from the URL
+
+export async function DELETE(
+	req: Request,
+	{ params }: { params: { id: string } }
+) {
+	// Await params as required by Next.js App Router
+	const { id } = await params;
 	if (!id) {
-		return NextResponse.json({ error: "Post ID is required" }, { status: 400 });
+		return NextResponse.json({ error: 'Member ID is required' }, { status: 400 });
 	}
 
 	try {
-		// Attempt to delete the post from the database
-		await prisma.newsPost.delete({
-			where: { id },
+		// First, delete dependent join table records:
+		await prisma.newsPostCategory.deleteMany({
+			where: { newsPostId: id },
 		});
 
-		return NextResponse.json({ message: "Post deleted successfully" }, { status: 200 });
-	} catch (error) {
-		console.error("Failed to delete post:", error);
-		return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
+		const deletedPost = await prisma.newsPost.delete({
+			where: { id },
+			include: {
+				comments: {
+					orderBy: { createdAt: "desc" },
+					select: {
+						id: true,
+						content: true,
+						postId: true,
+						authorId: true,
+						createdAt: true,
+					},
+				},
+			},
+		});
+
+		return NextResponse.json({ success: true, deletedPost }, { status: 200 });
+	} catch (error: unknown) {
+		console.error("Error deleting post:", error);
+		// Safely extract error message
+		const errorMessage =
+			error && typeof error === "object" && "message" in error
+				? (error as any).message
+				: "Unknown error";
+		return NextResponse.json(
+			{ error: "Failed to delete post", details: errorMessage },
+			{ status: 500 }
+		);
 	}
 }
 

@@ -106,29 +106,6 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
 
 export default function HomePageClient({ homeContent, homePosts, newsPosts }: HomePageProps) {
-  //  const { data: session } = useSession();
-  //  const isAdmin = session?.user?.role === "admin";
-  //
-  //  // Main states
-  //  const [title, setTitle] = useState(homeContent?.title || "");
-  //  const [heroImage, setHeroImage] = useState(homeContent?.heroImage || "/default-hero.jpg");
-  //  const [content, setContent] = useState(homeContent?.content || "");
-  //  const [posts, setPosts] = useState(homePosts);
-  //
-  //  // Draft states for editing
-  //  const [draftTitle, setDraftTitle] = useState(title);
-  //  const [draftHeroImage, setDraftHeroImage] = useState(heroImage);
-  //  const [draftContent, setDraftContent] = useState(content);
-  //  const [editHero, setEditHero] = useState(false);
-  //
-  //  // Post states
-  //  const [newPost, setNewPost] = useState({ title: "", content: "" });
-  //  const [showAddPost, setShowAddPost] = useState(false);
-  //  const [editPostId, setEditPostId] = useState<string | null>(null);
-  //  const [editPostTitle, setEditPostTitle] = useState("");
-  //  const [editPostContent, setEditPostContent] = useState("");
-  //
-  //
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
 
@@ -380,8 +357,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
         </div>
       )}
 
-      {/* Editable Sections
-      <section className="container mx-auto p-4">
+      <section className="container mx-auto px-6 space-y-12">
         {posts.map((post) => (
           <div key={post.id} className="bg-white p-4 mt-4">
             {isAdmin && editPostId === post.id ? (
@@ -405,7 +381,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
               </>
             ) : (
               <>
-                <h3 className="text-3xl text-ss-blue font-bold">{post.title}</h3>
+                <h3 className="text-5xl text-ss-blue font-bold">{post.title}</h3>
                 <div
                   className="prose max-w-none [&_li]:leading-[1.2] [&_li>p]:leading-[0.8]"
                   dangerouslySetInnerHTML={{ __html: post.content }}
@@ -433,9 +409,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
           </div>
         ))}
       </section>
-      */}
 
-      {/* About Us Section */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-6 flex items-center justify-between space-x-12">
           <div className="w-1/2">
@@ -458,8 +432,11 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
         </div>
       </section>
 
+
+
+
       {/* Call to Action Section */}
-      <section className="py-16 text-center bg-blue-600 text-white">
+      <section className="py-16 text-center bg-ss-blue text-white">
         <div className="container mx-auto px-6">
           <h2 className="text-5xl font-bold mb-6">Get Involved</h2>
           <p className="text-2xl mx-auto mb-8 max-w-3xl">
@@ -512,10 +489,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
                             dangerouslySetInnerHTML={{ __html: post.content }}
                           />
                         </div>
-                        <Link
-                          href={`/news/${post.id}`}
-                          className="inline-block bg-ss-blue text-white px-4 py-2 mb-10 rounded hover:bg-blue-700 transition duration-300"
-                        >
+                        <Link href={`/news/${post.id}`} className="bg-ss-blue text-white max-w-24 px-3 py-2 rounded block mb-8">
                           Read More
                         </Link>
                       </CardContent>

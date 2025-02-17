@@ -197,11 +197,11 @@ export default function ExecBodyPageClient({ execContent, initialMembers }: Exec
             {members.map((member) => (
               <Card key={member.id} className="bg-white shadow-lg">
                 <CardHeader>
-                  <Image src={member.imageUrl} alt={member.name} width={400} height={300} className="rounded-t-lg object-cover h-48 w-full" />
+                  <Image src={member.imageUrl} alt={member.name} width={400} height={300} className="rounded-t-lg object-cover h-64 w-full" />
                 </CardHeader>
                 <CardContent>
-                  <CardTitle>{member.name}</CardTitle>
-                  <p>{member.position}</p>
+                  <CardTitle className='text-3xl text-ss-blue'>{member.name}</CardTitle>
+                  <p className="text-xl">{member.position}</p>
                   {isAdmin && (
                     <div className="mt-4 flex justify-between">
                       <Button onClick={() => setEditMember(member)} className="bg-blue-500">Edit</Button>

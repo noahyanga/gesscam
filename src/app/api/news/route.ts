@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import type { NewsPost } from '@/types/news';
 
 export async function GET() {
 	try {
@@ -52,37 +51,45 @@ export async function GET() {
 
 
 
-export async function POST(req) {
+export async function POST(req: Request) {
 	try {
-		const { title, content, image } = await req.json();
+		const { title, content, image, categoryIds } = await req.json();
+
+		if (!title || !content || !categoryIds?.length) {
+			return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+		}
+
+		// Ensure all categories exist
+		const validCategories = await prisma.category.findMany({
+			where: { id: { in: categoryIds } },
+			select: { id: true },
+		});
+
+		if (validCategories.length !== categoryIds.length) {
+			return NextResponse.json({ error: "One or more category IDs are invalid" }, { status: 400 });
+		}
+
+		// Create news post
 		const newPost = await prisma.newsPost.create({
 			data: {
 				title,
 				content,
 				image,
+				categories: {
+					create: categoryIds.map((categoryId) => ({
+						category: { connect: { id: categoryId } },
+					})),
+				},
 			},
+			include: { categories: true },
 		});
 
 		return NextResponse.json(newPost, { status: 201 });
+
 	} catch (error) {
-		return NextResponse.json({ error: "Failed to create news post" }, { status: 500 });
+		console.error("Error creating post:", error);
+		return NextResponse.json({ error: "Server error", details: error.message }, { status: 500 });
 	}
 }
 
-export async function PUT(req: Request) {
-	try {
-		const { heroImage } = await req.json();
-
-		if (!heroImage) {
-			return NextResponse.json({ message: "heroImage is required" }, { status: 400 });
-		}
-
-		console.log("Updating hero image:", heroImage);
-
-		return NextResponse.json({ message: "News content updated successfully" }, { status: 200 });
-	} catch (error) {
-		console.error("API Error:", error);
-		return NextResponse.json({ message: "Internal Server Error", error: error.message }, { status: 500 });
-	}
-}
 

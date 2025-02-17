@@ -28,6 +28,7 @@ interface Category {
     newsPosts: number;
   };
 }
+
 // NewsPageProps interface
 interface NewsPageProps {
   newsContent: {
@@ -46,7 +47,6 @@ interface NewsPageProps {
   categories: Category[]; // Categories passed as prop
 }
 
-
 export default function NewsPageClient({ newsContent, initialPosts, categories }: NewsPageProps) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
@@ -60,15 +60,19 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
   const [title, setTitle] = useState(newsContent?.title);
 
   const [showAddPost, setShowAddPost] = useState(false);
-  const [newPost, setNewPost] = useState({ title: "", content: "", image: "" });
+  const [newPost, setNewPost] = useState({ title: "", content: "", image: null });
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categoryList, setCategoryList] = useState<Category[]>(categories);
-
-
+  const [newCategoryName, setNewCategoryName] = useState<string>("");
+  const [showAddCategory, setShowAddCategory] = useState(false);
 
   // Search and Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState("newest"); // "newest" or "oldest"
+
+  // *** Pagination State ***
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 6;
 
   // Save Hero Section
   const handleSaveHero = async () => {
@@ -93,7 +97,7 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
       setTitle(draftTitle);
       setHeroImage(draftHeroImage);
       setEditHero(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error updating news content:", err);
       alert(`Failed to update news content: ${err.message}`);
     }
@@ -115,24 +119,79 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
       }
     });
 
-  // Add a new post
+  // *** Calculate the posts for the current page ***
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+
+  // Optionally, reset page to 1 when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filter]);
+
+
   const handleAddPost = async () => {
+    if (!selectedCategory && !newCategoryName) {
+      alert("Please select or create one category.");
+      return;
+    }
+
     try {
+      const categoryIds: number[] = [];
+
+      // If a category is selected, add its ID
+      if (selectedCategory) {
+        categoryIds.push(selectedCategory);
+      }
+
+      // If creating a new category, add its ID
+      if (newCategoryName) {
+        const newCategoryId = await createCategory(newCategoryName);
+        if (newCategoryId) categoryIds.push(newCategoryId);
+      }
+
+      const postData = {
+        title: newPost.title,
+        content: newPost.content,
+        image: newPost.image,
+        categoryIds, // Single category ID
+      };
+
       const response = await fetch("/api/news", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPost),
+        body: JSON.stringify(postData),
       });
 
       if (!response.ok) throw new Error("Failed to add news post");
 
       const createdPost = await response.json();
-      setPosts([createdPost, ...posts]);
+      setPosts([createdPost, ...posts]); // Add new post to state
       setShowAddPost(false);
-      setNewPost({ title: "", content: "", image: "" });
+      setNewPost({ title: "", content: "", image: null });
+      setNewCategoryName(""); // Reset category input
+      setSelectedCategory(null); // Reset selected category to null
+
     } catch (err) {
       console.error("Error adding post:", err);
     }
+  };
+
+
+
+  // Add a new post
+  const createCategory = async (categoryName: string) => {
+    const response = await fetch("/api/news/categories", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: categoryName }),
+    });
+
+    const data = await response.json();
+    return data;
   };
 
   // Delete a post
@@ -142,12 +201,23 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
     try {
       const response = await fetch(`/api/news/${postId}`, { method: "DELETE" });
 
-      if (!response.ok) throw new Error("Failed to delete post");
-      setPosts(posts.filter((post) => post.id !== postId));
-    } catch (err) {
-      console.error("Error deleting post:", err);
+      // Get the raw text response
+      const responseText = await response.text();
+      // Only parse if there is text
+      const data = responseText ? JSON.parse(responseText) : {};
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to delete post");
+      }
+
+      // Update state after successful deletion
+      setPosts(posts.filter(post => post.id !== postId));
+    } catch (error: any) {
+      console.error("Error deleting post:", error);
     }
   };
+
+
 
   function stripHtml(html: string) {
     if (typeof window === 'undefined') {
@@ -159,21 +229,6 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
     const text = doc.body.textContent || "";
     return text.length > 150 ? `${text.substring(0, 150)}...` : text;
   }
-
-  useEffect(() => {
-    fetch("/api/news")
-      .then((res) => res.json())
-      .then((data: { categoryList: Category[] }) => { // Explicit type
-        console.log("Fetched categories:", data.categoryList);
-        if (data.categoryList) {
-          setCategoryList(data.categoryList);
-        }
-      })
-      .catch((error) => console.error("Error fetching categories:", error));
-  }, []);
-
-
-
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -209,10 +264,32 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
         </div>
       )}
 
-      {/* Admin: Add News Post Button */}
+      {/* Admin: Add Post & Add Category Buttons */}
       {isAdmin && (
-        <div className="container mx-auto px-4 mt-6 flex justify-end">
+        <div className="container mx-auto px-4 mt-6 flex justify-end space-x-4">
           <Button onClick={() => setShowAddPost(true)} className="bg-green-500">+ Add Post</Button>
+          <Button onClick={() => setShowAddCategory(true)} className="bg-blue-500">+ Add Category</Button>
+        </div>
+      )}
+
+      {isAdmin && showAddCategory && (
+        <div className="container mx-auto px-4 mt-6 bg-white p-6 shadow-lg rounded-lg">
+          <h2 className="text-xl font-bold mb-4">Create New Category</h2>
+          <input
+            type="text"
+            placeholder="New category name"
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            className="w-full p-2 mb-4 border rounded"
+          />
+          <div className="flex space-x-4">
+            <Button onClick={() => createCategory(newCategoryName)} className="bg-green-500 text-white">
+              Save Category
+            </Button>
+            <Button onClick={() => setShowAddCategory(false)} className="bg-gray-500">
+              Cancel
+            </Button>
+          </div>
         </div>
       )}
 
@@ -220,6 +297,8 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
       {isAdmin && showAddPost && (
         <div className="container mx-auto px-4 mt-6 bg-white p-6 shadow-lg rounded-lg">
           <h2 className="text-xl font-bold mb-4">Create a News Post</h2>
+
+          {/* Post Title */}
           <input
             type="text"
             placeholder="Title"
@@ -227,12 +306,37 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
             onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
             className="w-full p-2 mb-4 border rounded"
           />
+
+          {/* Content Editor */}
           <ReactQuill value={newPost.content} onChange={(value) => setNewPost({ ...newPost, content: value })} />
+
+          {/* Image Upload */}
           <ImageUpload value={newPost.image} onChange={(url) => setNewPost({ ...newPost, image: url })} />
 
+          {/* Category Selection */}
+          <label className="block text-sm font-medium mb-2">Category</label>
+          <select
+            value={selectedCategory || ""}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full p-2 mb-4 border rounded"
+            required
+          >
+            <option value="" disabled>Select a category</option>
+            {categoryList.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Save & Cancel Buttons */}
           <div className="flex space-x-4 mt-4">
-            <Button onClick={handleAddPost} className="bg-blue-500">Save Post</Button>
-            <Button onClick={() => setShowAddPost(false)} className="bg-gray-500">Cancel</Button>
+            <Button onClick={handleAddPost} className="bg-blue-500" disabled={!selectedCategory}>
+              Save Post
+            </Button>
+            <Button onClick={() => setShowAddPost(false)} className="bg-gray-500">
+              Cancel
+            </Button>
           </div>
         </div>
       )}
@@ -243,9 +347,7 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
         <CategorySidebar
           categories={categories}
           basePath="news" // This ensures the links are relative to "news"
-
         />
-
 
         {/* Main content */}
         <main className="flex-grow p-4">
@@ -274,36 +376,31 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
           {/* News Posts */}
           <section className="container mx-auto px-4 mt-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4 mb-6">
-              {filteredPosts.map((post) => (
+              {currentPosts.map((post) => (
                 <Card key={post.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition duration-300">
                   <CardHeader>
                     <div className="relative w-full h-56">
                       <Image src={post.image} alt={post.title} fill className="rounded-t-lg object-cover" />
-
                     </div>
                   </CardHeader>
                   <CardContent>
                     <CardTitle>{post.title}</CardTitle>
                     <p className="text-sm text-gray-600">{new Date(post.date).toDateString()}</p>
-
                     {/* Category under the date */}
                     {post.categories && (
                       <p className="text-sm font-semibold text-ss-blue">
                         {post.categories.map((cat) => cat.name).join(", ")}
                       </p>
                     )}
-
                     <p>
                       {(() => {
                         const textContent = stripHtml(post.content);
                         return textContent.length > 150 ? `${textContent.substring(0, 150)}...` : textContent;
                       })()}
                     </p>
-
                     <Link href={`/news/${post.id}`} className="bg-ss-blue text-white max-w-24 px-3 py-2 rounded block mt-4">
                       Read More
                     </Link>
-
                     {isAdmin && (
                       <div className="mt-4 flex justify-between">
                         <Link href={`/news/${post.id}/edit`} className="bg-blue-500 text-white px-2 py-2 rounded">Edit</Link>
@@ -314,9 +411,46 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
                 </Card>
               ))}
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <nav className="flex justify-center mt-8">
+                <ul className="inline-flex -space-x-px">
+                  <li>
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      Previous
+                    </button>
+                  </li>
+                  {Array.from({ length: totalPages }, (_, index) => (
+                    <li key={index}>
+                      <button
+                        onClick={() => setCurrentPage(index + 1)}
+                        className={`px-3 py-2 leading-tight border border-gray-300 ${currentPage === index + 1
+                          ? "text-blue-600 bg-blue-50"
+                          : "text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700"
+                          }`}
+                      >
+                        {index + 1}
+                      </button>
+                    </li>
+                  ))}
+                  <li>
+                    <button
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700"
+                    >
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            )}
           </section>
-
-
         </main>
       </div>
 
@@ -324,3 +458,4 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
     </div>
   );
 }
+

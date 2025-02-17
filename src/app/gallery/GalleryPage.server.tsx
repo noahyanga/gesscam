@@ -13,6 +13,8 @@ export default async function GalleryPageWrapper() {
     prisma.pageContent.findUnique({
       where: { pageSlug: 'gallery' }
     }),
+
+
     prisma.galleryImage.findMany({
       orderBy: { date: 'desc' },
       select: {
@@ -20,7 +22,7 @@ export default async function GalleryPageWrapper() {
         title: true,
         description: true,
         imageUrl: true,
-        date: true
+        date: true,
       }
     }),
 

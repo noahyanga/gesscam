@@ -3,15 +3,25 @@ import { prisma } from '@/lib/prisma';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET() {
 	try {
-		const image = await prisma.galleryImage.findUnique({
-			where: { id: params.id },
+		const images = await prisma.galleryImage.findMany({
+			orderBy: { date: 'desc' },
+			select: {
+				id: true,
+				title: true,
+				description: true,
+				imageUrl: true,
+				categories: {
+					select: {
+						id: true,
+						name: true,
+						slug: true,
+					},
+				},
+				date: true
+			}
 		});
-
-		if (!image) {
-			return NextResponse.json({ error: "Image not found" }, { status: 404 });
-		}
 
 		const categories = await prisma.category.findMany({
 			select: {
@@ -26,11 +36,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 			},
 		});
 
-		console.log("Fetched categories bb:", JSON.stringify(categories, null, 2)); // Debugging
 
-
-
-		return NextResponse.json({ image, categories }); // Ensure categories are included
+		return NextResponse.json({ images, categories }); // Ensure categories are included
 	} catch (error) {
 		console.error("News API Error:", error);
 		return NextResponse.json(
@@ -39,6 +46,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 		);
 	}
 }
+
+
+
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
 	const { id } = params;
@@ -81,26 +91,36 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 	}
 }
 
+
 export async function POST(req: Request) {
-	const { title, description, imageUrl } = await req.json();
-
-	if (!title || !description || !imageUrl) {
-		return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-	}
-
 	try {
-		const newImage = await prisma.galleryImage.create({
+		const { title, description, imageUrl, categoryIds } = await req.json();
+
+		if (!title || !description || !imageUrl) {
+			return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+		}
+
+		// Create news post
+		const newPost = await prisma.galleryImage.create({
 			data: {
 				title,
 				description,
 				imageUrl,
-				date: new Date(),
+				categories: {
+					create: categoryIds.map((categoryId) => ({
+						category: { connect: { id: categoryId } },
+					})),
+				},
 			},
+			include: { categories: true },
 		});
 
-		return NextResponse.json(newImage, { status: 201 });
+		return NextResponse.json(newPost, { status: 201 });
+
 	} catch (error) {
-		console.error("Error adding image:", error);
-		return NextResponse.json({ error: "Failed to add image" }, { status: 500 });
+		console.error("Error creating post:", error);
+		return NextResponse.json({ error: "Server error", details: error.message }, { status: 500 });
 	}
 }
+
+

@@ -20,19 +20,38 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 	}
 }
 
+
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
 	const { id } = params;
-	const { title, description, imageUrl } = await req.json(); // Get updated values from the request body
-
-	if (!id || !title || !description || !imageUrl) {
-		return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-	}
+	const { title, description, imageUrl, categoryIds } = await req.json();
 
 	try {
+		if (!id || !title.trim() || !description.trim() || !imageUrl.trim() || !categoryIds.length) {
+			return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+		}
+
+		// Step 1: Remove existing category associations
+		await prisma.galleryImageCategory.deleteMany({
+			where: { galleryImageId: id },
+		});
+
+		// Step 2: Update the image and reassign categories
 		const updatedImage = await prisma.galleryImage.update({
 			where: { id },
-			data: { title, description, imageUrl }, // Update the gallery image with new values
+			data: {
+				title,
+				description,
+				imageUrl,
+				categories: {
+					create: categoryIds.map((categoryId) => ({
+						category: { connect: { id: categoryId } },
+					})),
+				},
+			},
+			include: { categories: true },
 		});
+
+		console.log("Updated image with new categories:", { id, title, description, imageUrl, categoryIds });
 
 		return NextResponse.json(updatedImage, { status: 200 });
 	} catch (error) {
@@ -41,26 +60,44 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 	}
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-	// Await params first to make sure they are resolved
-	const { id } = await params;  // This should be awaited before using
 
+
+export async function DELETE(
+	req: Request,
+	{ params }: { params: { id: string } }
+) {
+	// Await params as required by Next.js App Router
+	const { id } = await params;
 	if (!id) {
-		return NextResponse.json({ error: "Image ID is required" }, { status: 400 });
+		return NextResponse.json({ error: 'Member ID is required' }, { status: 400 });
 	}
 
 	try {
-		// Attempt to delete the image from the database
-		await prisma.galleryImage.delete({
+		// First, delete dependent join table records:
+		await prisma.galleryImageCategory.deleteMany({
+			where: { galleryImageId: id },
+		});
+
+		const deletedPost = await prisma.galleryImage.delete({
 			where: { id },
 		});
 
-		return NextResponse.json({ message: "Image deleted successfully" }, { status: 200 });
-	} catch (error) {
-		console.error("Failed to delete image:", error);
-		return NextResponse.json({ error: "Failed to delete image" }, { status: 500 });
+		return NextResponse.json({ success: true, deletedPost }, { status: 200 });
+	} catch (error: unknown) {
+		console.error("Error deleting post:", error);
+		// Safely extract error message
+		const errorMessage =
+			error && typeof error === "object" && "message" in error
+				? (error as any).message
+				: "Unknown error";
+		return NextResponse.json(
+			{ error: "Failed to delete post", details: errorMessage },
+			{ status: 500 }
+		);
 	}
 }
+
+
 
 export async function POST(req: Request) {
 	const { title, description, imageUrl } = await req.json();

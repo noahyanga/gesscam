@@ -1,11 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -25,7 +17,6 @@ model User {
 
   comments  Comment[]
 }
-
 
 model PageContent {
   id        String      @id @default(uuid())
@@ -59,11 +50,10 @@ model ExecMember {
   createdAt DateTime @default(now())
 }
 
-
 model Comment {
   id        String    @id @default(uuid())
   content   String
-  post      NewsPost  @relation(fields: [postId], references: [id])
+  post      NewsPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    String
   author    User      @relation(fields: [authorId], references: [id])
   authorId  String
@@ -74,21 +64,29 @@ model Category {
   id           String        @id @default(uuid())
   name         String
   slug         String        @unique
-  newsPosts    NewsPost[]    @relation("CategoryToNews")
-  galleryPosts GalleryImage[]
+  newsPosts    NewsPostCategory[]
+  galleryPosts GalleryImageCategory[]  // Updated to reflect the join table for gallery images
   createdAt    DateTime      @default(now())
 }
 
 model NewsPost {
-  id         String     @id @default(uuid())
-  title      String
-  content    String
-  image      String
-  date       DateTime   @default(now())
-  comments   Comment[]
-  categories Category[] @relation("CategoryToNews") // Many-to-many relation
+  id          String            @id @default(uuid())
+  title       String
+  content     String
+  image       String
+  date        DateTime          @default(now())
+  comments    Comment[]
+  categories  NewsPostCategory[]   // Relation via join table
 }
 
+model NewsPostCategory {
+  newsPostId String
+  categoryId String
+  newsPost   NewsPost @relation(fields: [newsPostId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@id([newsPostId, categoryId]) // Composite primary key
+}
 
 model GalleryImage {
   id          String     @id @default(uuid())
@@ -96,5 +94,15 @@ model GalleryImage {
   description String
   imageUrl    String
   date        DateTime   @default(now())
-  categories  Category[]  // Many-to-many relationship
+  categories  GalleryImageCategory[]  // Relation via join table
 }
+
+model GalleryImageCategory {
+  galleryImageId String
+  categoryId     String
+  galleryImage   GalleryImage @relation(fields: [galleryImageId], references: [id])
+  category       Category     @relation(fields: [categoryId], references: [id])
+
+  @@id([galleryImageId, categoryId]) // Composite primary key
+}
+

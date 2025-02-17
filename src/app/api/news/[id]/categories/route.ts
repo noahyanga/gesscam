@@ -28,25 +28,24 @@ export async function POST(
 
 export async function DELETE(
 	req: Request,
-	{ params }: { params: { postId: string } }
+	{ params }: { params: { id: string } | Promise<{ id: string }> }
 ) {
+	const { id } = await params;
+	if (!id) {
+		return NextResponse.json({ error: 'Member ID is required' }, { status: 400 });
+	}
+
 	try {
-		const { searchParams } = new URL(req.url);
-		const categoryId = searchParams.get('categoryId');
-
-		const updatedPost = await prisma.newsPost.update({
-			where: { id: params.postId },
-			data: {
-				categories: { disconnect: { id: categoryId } }
-			},
-			include: { categories: true }
-		});
-
-		return NextResponse.json(updatedPost);
-	} catch (error) {
+		const deletedPost = await prisma.newsPost.delete({ where: { id } });
+		return NextResponse.json({ success: true, deletedPost }, { status: 200 });
+	} catch (error: any) {
+		console.error("Error deleting post:", error);
+		// Optionally check for specific error codes (e.g., Prisma's P2025)
 		return NextResponse.json(
-			{ error: "Failed to remove category" },
+			{ error: "Failed to delete post", details: error.message || "Unknown error" },
 			{ status: 500 }
 		);
 	}
 }
+
+

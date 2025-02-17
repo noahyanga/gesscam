@@ -117,27 +117,53 @@ async function main() {
     return acc
   }, {} as Record<string, string>)
 
-
-  // Create about us headings
   await prisma.aboutPost.createMany({
     data: [
       {
-        title: "Our History",
-        content: "<p>The Greater Equatoria of South Sudan Community Association was founded in 1999...</p>",
+        title: "Background and Guiding Principles",
+        content: `
+          <p>The Greater Equatoria of South Sudan Community Association (GESSCAM Inc.) was first established in July 1999 and formally incorporated in November 2009. Originally named the Greater Equatoria Association of Manitoba, the organization underwent name changes in 2018 and 2025 to better reflect its charitable mission and South Sudanese heritage.</p>
+          <p>Our guiding principles include:</p>
+          <ul>
+            <li>Equality of members with collegial interaction</li>
+            <li>Transparency and accountability in all operations</li>
+            <li>Freedom of expression and respect for diverse views</li>
+            <li>Honesty and forthrightness in all dealings</li>
+          </ul>
+        `,
         date: new Date()
       },
       {
-        title: "Our Mission",
-        content: "<p>We strive to create a vibrant community by...</p>",
+        title: "Our Commitments",
+        content: `
+          <p>GESSCAM Inc. is dedicated to:</p>
+          <ul>
+            <li>Non-discrimination based on nationality, religion, politics, or ethnicity</li>
+            <li>Promoting cultural exchange and social integration</li>
+            <li>Uniting all South Sudanese communities in Manitoba</li>
+            <li>Advocating for Equatorian interests through COSSCOM collaboration</li>
+          </ul>
+        `,
         date: new Date()
       },
       {
-        title: "Our Values",
-        content: "<ul><li>Unity</li><li>Transparency</li><li>Cultural Pride</li></ul>",
+        title: "Main Purposes",
+        content: `
+          <p>Our core objectives include:</p>
+          <ol>
+            <li>Providing settlement services including language training, employment support, and cultural orientation</li>
+            <li>Poverty relief through emergency support, food banks, and essential services</li>
+            <li>Operating a community food bank and clothing distribution program</li>
+            <li>Promoting racial harmony and community unity</li>
+            <li>Preserving and sharing Equatorian cultural heritage through educational programs</li>
+            <li>Supporting ancillary activities that further these charitable goals</li>
+          </ol>
+        `,
         date: new Date()
       }
     ]
   });
+
 
   await prisma.homePost.createMany({
     data: [
@@ -153,16 +179,12 @@ async function main() {
   });
 
 
-
-
-
-  // Create news posts with categories
   const newsPosts = [
     {
       title: "Community Festival 2024",
       content: "Join us for our annual community festival...",
       image: "/images/jug.svg",
-      categories: ["community-events", "cultural-news"]
+      categories: ["community-events"]
     },
     {
       title: "Local Sports Tournament",
@@ -191,16 +213,22 @@ async function main() {
   ]
 
   for (const post of newsPosts) {
-    await prisma.newsPost.create({
+    // Create the news post first
+    const createdPost = await prisma.newsPost.create({
       data: {
         title: post.title,
         content: post.content,
         image: post.image,
-        date: new Date(),
-        categories: {
-          connect: post.categories.map(slug => ({ id: categoryMap[slug] }))
-        }
+        date: new Date()
       }
+    })
+
+    // Now you can use `createdPost.id` for the `NewsPostCategory` join table
+    await prisma.newsPostCategory.createMany({
+      data: post.categories.map(slug => ({
+        newsPostId: createdPost.id, // Use the created post's ID
+        categoryId: categoryMap[slug] // Map slug to categoryId
+      }))
     })
   }
 
@@ -213,6 +241,13 @@ async function main() {
       categories: ["community-events", "gallery-highlights"]
     },
     {
+      title: 'Folklorama',
+      description: 'Annual cultural showcase',
+      imageUrl: '/images/land.svg',
+      categories: ["community-events"]
+    },
+
+    {
       title: 'Workshop Session',
       description: 'Learning new skills together',
       imageUrl: '/images/folk2.svg',
@@ -221,17 +256,25 @@ async function main() {
   ]
 
   for (const image of galleryImages) {
-    await prisma.galleryImage.create({
+    // Create the gallery image first
+    const createdImage = await prisma.galleryImage.create({
       data: {
         title: image.title,
         description: image.description,
         imageUrl: image.imageUrl,
-        categories: {
-          connect: image.categories.map(slug => ({ id: categoryMap[slug] }))
-        }
+        date: new Date()
       }
     })
+
+    // Now you can use `createdImage.id` for the `GalleryImageCategory` join table
+    await prisma.galleryImageCategory.createMany({
+      data: image.categories.map(slug => ({
+        galleryImageId: createdImage.id, // Use the created image's ID
+        categoryId: categoryMap[slug] // Map slug to categoryId
+      }))
+    })
   }
+
 
   // prisma/seed.ts
   await prisma.execMember.createMany({
