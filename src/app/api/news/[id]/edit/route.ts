@@ -58,53 +58,27 @@ export async function GET(
 }
 
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, context: { params: { id: string } }) {
 	try {
-		const post = await prisma.newsPost.findUnique({
-			where: { id },
-			include: {
-				comments: {
-					orderBy: { createdAt: "desc" },
-					select: {
-						id: true,
-						content: true,
-						postId: true,
-						authorId: true,
-						createdAt: true,
-					},
-				},
-			},
-		});
+		// Access params correctly using context.params
+		const { id } = context.params;
+		const { title, content, image, categoryIds } = await req.json();
+		console.log("Updated post with new categories:", { id, title, content, image, categoryIds });
 
-
-
-		if (!post) {
-			return NextResponse.json({ error: "Image not found" }, { status: 404 });
-		}
-
-		return NextResponse.json(post, { status: 200 });
-	} catch (error) {
-		console.error("API Error:", error);
-		return NextResponse.json({ error: "Failed to fetch image" }, { status: 500 });
-	}
-}
-
-
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-	const { id } = params;
-	const { title, content, image, categoryIds } = await req.json();
-
-	try {
-		if (!id || !title.trim() || !content.trim() || !image.trim() || !categoryIds.length) {
+		// Validate input
+		if (!id || !title?.trim() || !content?.trim() || !image?.trim() || !categoryIds || !categoryIds.length) {
 			return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
 		}
 
-		// Step 1: Remove existing category associations
+		// Ensure categoryIds is always an array
+		const categoriesArray = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
+
+		// Delete old category relationships
 		await prisma.newsPostCategory.deleteMany({
 			where: { newsPostId: id },
 		});
 
-		// Step 2: Update the image and reassign categories
+		// Update the news post and reassign categories
 		const updatedPost = await prisma.newsPost.update({
 			where: { id },
 			data: {
@@ -112,7 +86,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 				content,
 				image,
 				categories: {
-					create: categoryIds.map((categoryId) => ({
+					create: categoriesArray.map((categoryId) => ({
 						category: { connect: { id: categoryId } },
 					})),
 				},
@@ -120,10 +94,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 			include: { categories: true },
 		});
 
+		console.log("Updated post with new categories:", { id, title, content, image, categoriesArray });
+
 		return NextResponse.json(updatedPost, { status: 200 });
 	} catch (error) {
-		console.error("Error updating image:", error);
-		return NextResponse.json({ error: "Failed to update image" }, { status: 500 });
+		console.error("Error updating post:", error);
+		return NextResponse.json({ error: "Failed to update post" }, { status: 500 });
 	}
 }
 

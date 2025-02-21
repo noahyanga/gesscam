@@ -12,7 +12,20 @@ import ImageUpload from "@/components/Admin/ImageUpload";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import type { PageContent, GalleryImage } from "@prisma/client";
 import CategorySidebar from "@/components/layout/CategorySidebar";
-import type { Category } from "@/types/category"; // Adjust import as needed
+import Link from "next/link";
+
+
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  _count: {
+    galleryPosts: number;
+  };
+}
+
+
 
 interface GalleryPageProps {
   galleryContent: PageContent | null;
@@ -36,7 +49,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
   const [newImage, setNewImage] = useState({ title: "", description: "", imageUrl: null });
   const [modalImage, setModalImage] = useState<GalleryImage | null>(null);
   const [categoryList, setCategoryList] = useState<Category[]>(categories);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>("All");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState<string>("");
 
@@ -250,7 +263,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
 
       {/* Admin Edit Hero Section */}
       {isAdmin && editHero && (
-        <div className="container mx-auto mt-4 px-4">
+        <div className="container mx-auto mt-4 px-4 sm:px-6 md:px-8">
           <label className="block text-sm font-medium mb-2">Title</label>
           <input
             type="text"
@@ -273,7 +286,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
 
       {/* Admin Controls */}
       {isAdmin && (
-        <div className="container mx-auto px-4 mt-6 flex justify-end space-x-4">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 mt-6 flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4">
           <Button onClick={() => setShowAddImage(true)} className="bg-green-500">
             + Add Image
           </Button>
@@ -304,22 +317,21 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
           <ImageUpload value={newImage.imageUrl} onChange={(url) => setNewImage({ ...newImage, imageUrl: url })} />
 
           {/* Category Selection */}
-          <label className="block text-sm font-medium mb-2">Category</label>
-          <select
-            value={selectedCategory || ""}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full p-2 mb-4 border rounded"
-            required
-          >
-            <option value="" disabled>
-              Select a category
-            </option>
-            {categoryList.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+          <div className="mb-6">
+            <label className="block font-semibold mb-2">Category:</label>
+            <select
+              value={selectedCategory || ""}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full p-3 border rounded-lg mb-4"
+            >
+              <option value="" disabled>Select a category</option>
+              {categoryList.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="flex space-x-4 mt-4">
             <button onClick={handleAddImage} className="bg-blue-500 text-white px-4 py-2 rounded">
@@ -330,177 +342,212 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
             </button>
           </div>
         </div>
-      )}
+      )
+      }
 
       {/* Edit Image Modal */}
-      {isAdmin && editImage && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Edit Image</h2>
-            <input
-              type="text"
-              value={editImage.title}
-              onChange={(e) => setEditImage({ ...editImage, title: e.target.value })}
-              placeholder="Title"
-              className="w-full p-2 border rounded mb-4"
-            />
-            <textarea
-              value={editImage.description}
-              onChange={(e) => setEditImage({ ...editImage, description: e.target.value })}
-              placeholder="Description"
-              className="w-full p-2 border rounded mb-4"
-              rows={3}
-            />
-            <ImageUpload value={editImage.imageUrl} onChange={(url) => setEditImage({ ...editImage, imageUrl: url })} />
-
-            {/* Category Selection */}
-            <label className="block text-sm font-medium mb-2">Category</label>
-            <select
-              value={selectedCategory || ""}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="w-full p-2 mb-4 border rounded"
-              required
-            >
-              <option value="" disabled>
-                Select a category
-              </option>
-              {categoryList.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-
-
-            <div className="flex justify-end space-x-4 mt-4">
-              <Button onClick={handleSaveImageEdit} className="bg-blue-500 text-white px-4 py-2 rounded">
-                Save Changes
-              </Button>
-              <Button onClick={() => setEditImage(null)} className="bg-gray-500 text-white px-4 py-2 rounded">
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Sidebar and Main Content */}
-      <div className="flex flex-grow">
-        <CategorySidebar categories={categories} basePath="gallery" />
-
-        <section className="py-16 bg-gradient-to-b from-ss-white to-ss-blue/10 w-full">
-          <div className="container mx-auto px-4">
-            <h2 className="text-5xl font-semibold text-center mb-6">Community Photos</h2>
-
-            {/* Search and Sort */}
-            <div className="flex justify-evenly mb-6">
+      {
+        isAdmin && editImage && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">Edit Image</h2>
               <input
                 type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search for images..."
-                className="w-1/3 p-2 border rounded"
+                value={editImage.title}
+                onChange={(e) => setEditImage({ ...editImage, title: e.target.value })}
+                placeholder="Title"
+                className="w-full p-2 border rounded mb-4"
               />
+              <textarea
+                value={editImage.description}
+                onChange={(e) => setEditImage({ ...editImage, description: e.target.value })}
+                placeholder="Description"
+                className="w-full p-2 border rounded mb-4"
+                rows={3}
+              />
+              <ImageUpload value={editImage.imageUrl} onChange={(url) => setEditImage({ ...editImage, imageUrl: url })} />
+
+              {/* Category Selection */}
+              <h2 className="text-xl font-bold mt-10">Category</h2>
               <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="p-2 border rounded"
+                value={selectedCategory || ""}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full p-2 mb-4 border rounded"
+                required
               >
-                <option value="newest">Newest to Oldest</option>
-                <option value="oldest">Oldest to Newest</option>
+                <option value="" disabled>
+                  Select a category
+                </option>
+                {categoryList.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredImages.length === 0 ? (
-                <p className="text-center text-gray-600">No images available.</p>
-              ) : (
-                filteredImages.map((item) => (
-                  <Card key={item.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div className="relative">
-                      <div
-                        className="relative w-full h-56 overflow-hidden cursor-pointer"
-                        onClick={() => setModalImage(item)}
-                      >
-                        <CardHeader className="p-0">
-                          <div className="absolute inset-0">
-                            <Image
-                              src={item.imageUrl}
-                              alt={item.title}
-                              fill
-                              className="rounded-t-lg"
-                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            />
-                          </div>
-                        </CardHeader>
-                      </div>
-                      <CardContent>
-                        <CardTitle className="text-2xl font-bold text-ss-blue mb-2">{item.title}</CardTitle>
-                        <p className="text-sm text-gray-600 mt-2">
-                          {new Date(item.date).toLocaleDateString()}
-                        </p>
-                        {isAdmin && (
-                          <div className="mt-4 flex justify-between">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditImage(item);
-                              }}
-                              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteImage(item.id);
-                              }}
-                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </CardContent>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div>
-          </div>
-        </section>
 
-        {modalImage && (
-          <div
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fade-in"
-            onClick={() => setModalImage(null)}
-          >
-            <div
-              className="relative max-w-4xl w-full mx-4 bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-2xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <XMarkIcon
-                className="absolute top-2 right-2 w-10 h-10 text-white cursor-pointer"
-                onClick={closeModal}
-              />
-              <Image
-                src={modalImage.imageUrl}
-                alt={modalImage.title}
-                width={1000}
-                height={1000}
-                className="rounded-t-xl"
-              />
-              <div className="p-6">
-                <h2 className="text-2xl font-semibold mb-4">{modalImage.title}</h2>
-                <p>{modalImage.description}</p>
+              <div className="flex justify-end space-x-4 mt-4">
+                <Button onClick={handleSaveImageEdit} className="bg-blue-500 text-white px-4 py-2 rounded">
+                  Save Changes
+                </Button>
+                <Button onClick={() => setEditImage(null)} className="bg-gray-500 text-white px-4 py-2 rounded">
+                  Cancel
+                </Button>
               </div>
             </div>
           </div>
-        )}
+        )
+      }
+
+      {/* Sidebar and Main Content */}
+      <div className="flex flex-col md:flex-row flex-grow">
+        <div className="flex flex-col md:flex-row flex-grow">
+          <CategorySidebar categories={categories} basePath="gallery" className="w-full md:w-full" />
+
+
+          <section className="py-16 bg-gradient-to-b from-ss-white to-ss-blue/10 w-full md:w-3/4 px-4 sm:px-6 md:px-8">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl sm:text-5xl font-semibold text-center mb-6">Community Photos</h2>
+
+              {/* Search and Sort */}
+              <div className="flex flex-col sm:flex-row items-center justify-between mb-6 space-y-4 sm:space-y-0 sm:space-x-4">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search for images..."
+                  className="w-full sm:flex-1 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+
+                />
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="w-full sm:w-auto p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="newest">Newest to Oldest</option>
+                  <option value="oldest">Oldest to Newest</option>
+                </select>
+              </div>
+
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
+                {filteredImages.length === 0 ? (
+                  <p className="text-center text-gray-600">No images available.</p>
+                ) : (
+                  filteredImages.map((item) => (
+                    <Card key={item.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                      <div className="relative">
+                        <div
+                          className="relative w-full h-56 overflow-hidden cursor-pointer"
+                          onClick={() => setModalImage(item)}
+                        >
+                          <CardHeader className="p-0">
+                            <div className="absolute inset-0">
+                              <Image
+                                src={item.imageUrl}
+                                alt={item.title}
+                                fill
+                                className="w-full h-auto aspect-[4/3] object-cover"
+                              />
+                            </div>
+                          </CardHeader>
+                        </div>
+                        <CardContent>
+                          <CardTitle className="text-2xl font-bold text-ss-blue mb-2">{item.title}</CardTitle>
+                          <p className="text-sm text-gray-600 mt-2">
+                            {new Date(item.date).toLocaleDateString()}
+                          </p>
+
+                          {/* Categories under the date */}
+                          <p className="text-sm font-semibold text-ss-blue">
+                            {item.categories.map((cat, index) => {
+                              const categoryName = cat.category?.name || "Uncategorized";
+                              const slug = categoryName.toLowerCase().replace(/\s+/g, "-"); // Convert to lowercase and replace spaces
+                              return (
+                                <span key={slug}>
+                                  <Link href={`/gallery/categories/${slug}`} className="hover:underline hover:text-blue-600">
+                                    {categoryName}
+                                  </Link>
+                                  {index < item.categories.length - 1 && ", "}
+                                </span>
+                              );
+                            })}
+                          </p>
+
+
+
+
+                          {isAdmin && (
+                            <div className="mt-4 flex justify-between">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditImage(item);
+                                }}
+                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteImage(item.id);
+                                }}
+                                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </CardContent>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+          </section>
+          {modalImage && (
+            <div
+              className="fixed inset-0 flex items-center justify-center z-[9999] backdrop-blur-sm"
+              onClick={() => setModalImage(null)}
+            >
+              <div
+                className="relative rounded-xl max-w-lg w-full h-auto overflow-hidden shadow-xl m-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Close Button with Soft Hover */}
+
+                <XMarkIcon
+                  className=" w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 hover:bg-white/70 text-ss-red cursor-pointer transition-all mb-5"
+                  onClick={closeModal}
+                />
+
+                {/* Scrollable Image Container */}
+                <div className="relative w-full max-h-[70vh] overflow-auto rounded-t-xl">
+                  <Image
+                    src={modalImage.imageUrl}
+                    alt={modalImage.title}
+                    width={1200}
+                    height={800}
+                    className="w-full h-auto object-contain" // 'object-contain' ensures image fits inside container
+                  />
+                </div>
+
+                {/* Modal Content with Dark Text Background */}
+                <div className="bg-ss-black/70 text-white p-6 rounded-b-xl">
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-4">{modalImage.title}</h2>
+                  <p className="text-sm sm:text-base">{modalImage.description}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
 
       <Footer />
-    </div>
+    </div >
   );
 }
 

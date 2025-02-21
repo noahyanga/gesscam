@@ -10,6 +10,7 @@ import HeroSection from '@/components/layout/HeroSection';
 import Button from '@/components/ui/button';
 import ImageUpload from '@/components/admin/ImageUpload';
 import type { PageContent, ExecMember } from '@prisma/client';
+import { ChevronDown, Plus, Edit2, Trash2 } from "lucide-react";
 
 interface ExecBodyPageProps {
   execContent: PageContent | null;
@@ -101,8 +102,10 @@ export default function ExecBodyPageClient({ execContent, initialMembers }: Exec
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-white to-gray-50">
       <Navbar />
+
+      {/* Hero Section */}
       <HeroSection
         title={title || 'Executive Body'}
         heroImage={heroImage}
@@ -110,112 +113,206 @@ export default function ExecBodyPageClient({ execContent, initialMembers }: Exec
         onEditClick={() => setEditHero(true)}
       />
 
+      {/* Admin Edit Hero Modal */}
       {isAdmin && editHero && (
-        <div className="container mx-auto mt-4 px-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full animate-fade-in-up">
+            <h2 className="text-2xl font-bold mb-6">Edit Hero Section</h2>
 
-          <label className="block text-sm font-medium mb-2">Title</label>
-          <input
-            type="text"
-            value={draftTitle}
-            onChange={(e) => setDraftTitle(e.target.value)}
-            className="w-fit p-2 mb-4 border rounded"
-          />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <input
+                  type="text"
+                  value={draftTitle}
+                  onChange={(e) => setDraftTitle(e.target.value)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
+                />
+              </div>
 
-          <h2 className="text-lg font-bold mb-2">Change Hero Image:</h2>
-          <ImageUpload value={draftHeroImage} onChange={setDraftHeroImage} />
-          <div className="flex space-x-4 mt-4">
-            <Button onClick={handleSaveHeroImage} className="bg-blue-500">Save Changes</Button>
-            <Button onClick={() => setEditHero(false)} className="bg-gray-500">Cancel</Button>
-          </div>
-        </div>
-      )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Hero Image</label>
+                <ImageUpload
+                  value={draftHeroImage}
+                  onChange={setDraftHeroImage}
+                  className="rounded-lg border border-dashed border-gray-300 p-4 hover:border-blue-500 transition-colors"
+                />
+              </div>
 
-      {isAdmin && (
-        <div className="container mx-auto px-4 mt-6 flex justify-end">
-          <Button onClick={() => setShowAddMember(true)} className="bg-green-500">+ Add Member</Button>
-        </div>
-      )}
-
-      {isAdmin && showAddMember && (
-        <div className="container mx-auto px-4 mt-6 bg-white p-6 shadow-lg rounded-lg">
-          <h2 className="text-xl font-bold mb-4">Add a New Member</h2>
-          <input type="text" placeholder="Name" value={newMember.name} onChange={(e) => setNewMember({ ...newMember, name: e.target.value })} className="w-full p-2 mb-4 border rounded" />
-          <input type="text" placeholder="Position" value={newMember.position} onChange={(e) => setNewMember({ ...newMember, position: e.target.value })} className="w-full p-2 mb-4 border rounded" />
-          <ImageUpload value={newMember.imageUrl} onChange={(url) => setNewMember({ ...newMember, imageUrl: url })} />
-          <div className="flex space-x-4 mt-4">
-            <Button onClick={handleAddMember} className="bg-blue-500">Save Member</Button>
-            <Button onClick={() => setShowAddMember(false)} className="bg-gray-500">Cancel</Button>
-          </div>
-        </div>
-      )}
-
-      {editMember && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4">Edit Image</h2>
-            <input
-              type="text"
-              placeholder="Title"
-              value={editMember.name}
-              onChange={(e) => setEditMember({ ...editMember, name: e.target.value })}
-              className="w-full p-2 mb-4 border rounded"
-            />
-            <textarea
-              placeholder="Description"
-              value={editMember.position}
-              onChange={(e) => setEditMember({ ...editMember, position: e.target.value })}
-              className="w-full p-2 mb-4 border rounded"
-              rows={3}
-            />
-            <ImageUpload
-              value={editMember.imageUrl}
-              onChange={(url) => setEditMember({ ...editMember, imageUrl: url })}
-            />
-            <div className="flex space-x-4 mt-4">
-              <button
-                onClick={handleSaveMemberEdit}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Save Changes
-              </button>
-              <button
-                onClick={() => setEditMember(null)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                Cancel
-              </button>
+              <div className="flex space-x-4 mt-6">
+                <Button
+                  onClick={handleSaveHeroImage}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition-colors"
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  onClick={() => setEditHero(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors"
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* Add Member Button */}
+      {isAdmin && (
+        <div className="container mx-auto px-4 mt-8">
+          <Button
+            onClick={() => setShowAddMember(true)}
+            className="group bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
+            Add Member
+          </Button>
+        </div>
+      )}
 
+      {/* Add Member Modal */}
+      {isAdmin && showAddMember && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full animate-fade-in-up">
+            <h2 className="text-2xl font-bold mb-6">Add New Member</h2>
 
-      <section className="py-16 bg-gradient-to-b from-ss-white to-ss-blue/10">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="space-y-4">
+              <input
+                type="text"
+                placeholder="Name"
+                value={newMember.name}
+                onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+
+              <input
+                type="text"
+                placeholder="Position"
+                value={newMember.position}
+                onChange={(e) => setNewMember({ ...newMember, position: e.target.value })}
+                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+
+              <ImageUpload
+                value={newMember.imageUrl}
+                onChange={(url) => setNewMember({ ...newMember, imageUrl: url })}
+                className="rounded-lg border border-dashed border-gray-300 p-4 hover:border-blue-500 transition-colors"
+              />
+
+              <div className="flex space-x-4 mt-6">
+                <Button
+                  onClick={handleAddMember}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition-colors"
+                >
+                  Save Member
+                </Button>
+                <Button
+                  onClick={() => setShowAddMember(false)}
+                  className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Members Grid Section */}
+      <section className="py-10 px-4 mb-10 mt-10">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {members.map((member) => (
-              <Card key={member.id} className="bg-white shadow-lg">
-                <CardHeader>
-                  <Image src={member.imageUrl} alt={member.name} width={400} height={300} className="rounded-t-lg object-cover h-64 w-full" />
-                </CardHeader>
-                <CardContent>
-                  <CardTitle className='text-3xl text-ss-blue'>{member.name}</CardTitle>
-                  <p className="text-xl">{member.position}</p>
-                  {isAdmin && (
-                    <div className="mt-4 flex justify-between">
-                      <Button onClick={() => setEditMember(member)} className="bg-blue-500">Edit</Button>
-                      <Button onClick={() => handleDeleteMember(member.id)} className="bg-red-500">Delete</Button>
-                    </div>
-                  )}
-                </CardContent>
+              <Card
+                key={member.id}
+                className="bg-white shadow-md hover:shadow-lg transition duration-300 p-4 flex flex-col items-center text-center"
+              >
+                <img
+                  src={member.imageUrl}
+                  alt={member.name}
+                  className="w-64 h-64 rounded-full object-cover border-4 border-gray-300 shadow-sm"
+                />
+                <CardTitle className="text-xl font-bold text-gray-900 mt-3">
+                  {member.name}
+                </CardTitle>
+                <p className="text-sm text-gray-600">{member.position}</p>
+
+                {isAdmin && (
+                  <div className="mt-3 flex space-x-3">
+                    <Button
+                      onClick={() => setEditMember(member)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteMember(member.id)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                )}
               </Card>
             ))}
           </div>
         </div>
       </section>
+
+
+
+      {/* Edit Member Modal */}
+      {
+        editMember && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full animate-fade-in-up">
+              <h2 className="text-2xl font-bold mb-6">Edit Member</h2>
+
+              <div className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={editMember.name}
+                  onChange={(e) => setEditMember({ ...editMember, name: e.target.value })}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
+                />
+
+                <textarea
+                  placeholder="Position"
+                  value={editMember.position}
+                  onChange={(e) => setEditMember({ ...editMember, position: e.target.value })}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
+                  rows={3}
+                />
+
+                <ImageUpload
+                  value={editMember.imageUrl}
+                  onChange={(url) => setEditMember({ ...editMember, imageUrl: url })}
+                  className="rounded-lg border border-dashed border-gray-300 p-4 hover:border-blue-500 transition-colors"
+                />
+
+                <div className="flex space-x-4 mt-6">
+                  <Button
+                    onClick={handleSaveMemberEdit}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg transition-colors"
+                  >
+                    Save Changes
+                  </Button>
+                  <Button
+                    onClick={() => setEditMember(null)}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
       <Footer />
-    </div>
+    </div >
   );
 }
-

@@ -7,11 +7,13 @@ import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/layout/HeroSection";
 import Button from "@/components/ui/button";
 import ImageUpload from "@/components/admin/ImageUpload";
+import Image from "next/image";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import Color from '@tiptap/extension-color';
 import TextStyle from '@tiptap/extension-text-style';
+import { motion } from "framer-motion";
 import '@/app/globals.css';
 
 interface AboutPageProps {
@@ -278,17 +280,46 @@ export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageP
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
 
-      <HeroSection
-        title={title}
-        heroImage={heroImage}
-        isAdmin={isAdmin}
-        onEditClick={() => {
-          setEditHero(true);
-        }}
-      />
+      {/* Modern Hero Section */}
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative h-[60vh] flex items-center justify-center overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/80 to-purple-500/80">
+          {heroImage && (
+            <Image
+              src={heroImage}
+              alt="About Us"
+              fill
+              className="object-cover mix-blend-multiply"
+              priority
+            />
+          )}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 text-center max-w-4xl px-4"
+        >
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-xl">
+            {title}
+          </h1>
+          {isAdmin && (
+            <Button
+              onClick={() => setEditHero(true)}
+              className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm"
+              variant="ghost"
+            >
+              Edit Hero
+            </Button>
+          )}
+        </motion.div>
+      </motion.section>
 
       {isAdmin && editHero && (
         <div className="container mx-auto mt-4 px-4">
@@ -351,39 +382,38 @@ export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageP
         </div>
       )}
 
-      <section className="container mx-auto p-4">
+      <section className="container mx-auto p-4 space-y-6">
         {posts.map((post) => (
-          <div key={post.id} className="bg-white p-4">
+          <div key={post.id} className="p-6 rounded-lg transition-shadow duration-300">
             {isAdmin && editPostId === post.id ? (
               <>
                 <input
                   type="text"
                   value={editPostTitle}
                   onChange={(e) => setEditPostTitle(e.target.value)}
-                  className="w-full p-2 mb-2 border rounded"
+                  className="w-full p-3 mb-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <div className="border rounded-lg">
+                <div className="border rounded-lg mb-4">
                   <MenuBar editor={editPostEditor} />
-                  <div className="p-4 prose max-w-none [&_li]:leading-[1.2] [&_li>p]:leading-[0.8]">
+                  <div className="p-4 prose max-w-none [&_li]:leading-[1.4] [&_li>p]:leading-[1.2]">
                     <EditorContent editor={editPostEditor} />
                   </div>
                 </div>
-                < div className="mt-4 flex space-x-4">
-                  <Button onClick={() => handleSavePost(post.id)} className="bg-blue-500">Save Changes</Button>
-                  <Button onClick={() => setEditPostId(null)} className="bg-gray-500">Cancel</Button>
+                <div className="mt-4 flex space-x-4 justify-center">
+                  <Button onClick={() => handleSavePost(post.id)} className="bg-blue-500 text-white px-6 py-2 rounded-md">Save</Button>
+                  <Button onClick={() => setEditPostId(null)} className="bg-gray-500 text-white px-6 py-2 rounded-md">Cancel</Button>
                 </div>
               </>
             ) : (
               <>
-                <h3 className="text-3xl text-ss-blue font-bold">{post.title}</h3>
-                <div className="prose max-w-none [&_li]:leading-[1.2] [&_li>p]:leading-[0.8]"
-                  dangerouslySetInnerHTML={{ __html: post.content }} />
+                <h3 className="text-2xl sm:text-3xl text-ss-blue font-semibold mb-4">{post.title}</h3>
+                <div className="prose max-w-none [&_li]:leading-[1.4] [&_li>p]:leading-[1.2]" dangerouslySetInnerHTML={{ __html: post.content }} />
                 {isAdmin && (
-                  <div className="mt-4 flex space-x-4">
-                    <Button onClick={() => startEditingPost(post.id, post.title, post.content)} className="bg-blue-500">
+                  <div className="mt-4 flex space-x-4 justify-center">
+                    <Button onClick={() => startEditingPost(post.id, post.title, post.content)} className="bg-blue-500 text-white px-6 py-2 rounded-md">
                       Edit
                     </Button>
-                    <Button onClick={() => handleDeletePost(post.id)} className="bg-red-500">
+                    <Button onClick={() => handleDeletePost(post.id)} className="bg-red-500 text-white px-6 py-2 rounded-md">
                       Delete
                     </Button>
                   </div>
@@ -391,9 +421,9 @@ export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageP
               </>
             )}
           </div>
-        ))
-        }
-      </section >
+        ))}
+      </section>
+
 
       <Footer />
     </div >

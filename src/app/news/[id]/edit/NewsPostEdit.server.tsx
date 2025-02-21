@@ -5,47 +5,37 @@ import { getServerSession } from "next-auth"; // Get session using next-auth
 import { authOptions } from "@/lib/auth"; // Your auth options
 import SessionProviderWrapper from "@/components/Admin/SessionProviderWrapper";
 
-export default async function NewsPageWrapper() {
+interface EditPostPageProps {
+	params: { id: string };
+}
+
+export default async function NewsPageWrapper({ params }: EditPostPageProps) {
 	// Fetch session on the server-side
+	const { id } = params;  // Destructure the ID from params
 	const session = await getServerSession(authOptions);
 
-	// Fetch news content, posts, and categories from the database
-	const [newsContent, initialPosts, categories] = await Promise.all([
-		prisma.pageContent.findUnique({
-			where: { pageSlug: "news" }
-		}),
+	const post = await prisma.newsPost.findUnique({
+		where: { id },
+		include: {
+			comments: {
+				orderBy: { createdAt: "desc" },
+				include: {
+					author: { select: { username: true } }, // Directly include the username in the comment
+				},
+			},
+		},
+	});
 
-		prisma.newsPost.findMany({
-			orderBy: { date: "desc" },
-			select: {
-				id: true,
-				title: true,
-				content: true,
-				image: true,
-				date: true,
-				categories: {
-					select: {
-						category: { // ✅ Get the actual Category object
-							select: {
-								id: true,
-								slug: true,
-								name: true
-							}
-						}
-					}
-				}
-			}
-		}),
+	const categories = await prisma.category.findMany({
+		select: {
+			id: true,
+			name: true,
+			slug: true,
+			_count: { select: { newsPosts: true } } // Ensure this is included
+		},
+	});
 
-		prisma.category.findMany({
-			select: {
-				id: true,
-				name: true,
-				slug: true,
-				_count: { select: { newsPosts: true } }
-			}
-		})
-	]);
+
 
 
 
@@ -53,8 +43,7 @@ export default async function NewsPageWrapper() {
 	return (
 		<SessionProviderWrapper session={session}>
 			<NewsEditPage
-				newsContent={newsContent}
-				initialPosts={initialPosts}
+				post={post}
 				categories={categories}
 			/>
 		</SessionProviderWrapper>

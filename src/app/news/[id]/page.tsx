@@ -19,6 +19,7 @@ export default async function PostPage({ params }: PostPageProps) {
   console.log("Post ID from params:", id); // Check the ID here
 
   const session = await getServerSession(authOptions);
+  console.log("Session in server component:", JSON.stringify(session, null, 2));
 
   // Fetch the post 
   const post = await prisma.newsPost.findUnique({
@@ -32,7 +33,6 @@ export default async function PostPage({ params }: PostPageProps) {
       },
     },
   });
-
 
 
   // Handle case where the post is not found

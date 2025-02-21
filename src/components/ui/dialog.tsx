@@ -1,11 +1,14 @@
 // components/ui/Dialog.tsx
-import { useState } from "react";
 
 interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
 }
+
+const DialogTrigger: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <div>{children}</div>;
+};
 
 const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -25,4 +28,6 @@ const Dialog: React.FC<DialogProps> = ({ isOpen, onClose, children }) => {
   );
 };
 
-export default Dialog;
+// Named exports for both Dialog and DialogTrigger
+export { Dialog, DialogTrigger };
+

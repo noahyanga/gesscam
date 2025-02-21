@@ -26,6 +26,7 @@ const authOptions = {
 
 					const user = await prisma.user.findUnique({
 						where: { email: credentials.email },
+						select: { id: true, email: true, password: true, role: true, username: true }
 					});
 
 					if (!user) {
@@ -39,7 +40,7 @@ const authOptions = {
 					}
 
 					// Return user with the role to be included in the session
-					return { id: user.id, email: user.email, role: user.role }; // Include the role
+					return { id: user.id, email: user.email, role: user.role, username: user.username };
 				} catch (error) {
 					console.error("Authentication error:", error.message);
 					return null;
@@ -53,6 +54,7 @@ const authOptions = {
 			if (user) {
 				token.id = user.id;
 				token.email = user.email;
+				token.username = user.username || "unknown";
 				token.role = user.role; // Add role to token
 			}
 			return token;
@@ -60,7 +62,9 @@ const authOptions = {
 		async session({ session, token }) {
 			session.user.id = token.id;
 			session.user.email = token.email;
-			session.user.role = token.role; // Add role to session
+			session.user.username = token.username || "unknown";
+			session.user.role = token.role;
+
 			return session;
 		},
 	},

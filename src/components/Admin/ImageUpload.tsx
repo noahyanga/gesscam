@@ -31,8 +31,8 @@ export default function ImageUpload({ value, onChange }) {
 			}
 
 			const { url } = await response.json();
-			onChange(url); // Update the parent component state
-			setPreview(url); // Show preview immediately
+			onChange(url); // Update parent state
+			setPreview(url); // Update preview
 		} catch (error) {
 			console.error("Upload failed:", error);
 		}

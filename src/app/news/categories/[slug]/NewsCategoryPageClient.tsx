@@ -16,6 +16,14 @@ import ImageUpload from "@/components/admin/ImageUpload";
 import dynamic from "next/dynamic";
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill/dist/quill.snow.css";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
+import Color from '@tiptap/extension-color';
+import TextStyle from '@tiptap/extension-text-style';
+import Placeholder from '@tiptap/extension-placeholder';
+
+
 
 interface Category {
 	id: string;
@@ -43,6 +51,74 @@ interface NewsPageProps {
 	}[];
 	categories: Category[]; // Categories passed as prop
 }
+
+const MenuBar = ({ editor }: { editor: any }) => {
+	if (!editor) {
+		return null;
+	}
+
+	return (
+		<div className="border-b p-2 mb-4 flex flex-wrap gap-2">
+			<Button
+				onClick={() => editor.chain().focus().toggleBold().run()}
+				className={`p-2 ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
+			>
+				Bold
+			</Button>
+			<Button
+				onClick={() => editor.chain().focus().toggleItalic().run()}
+				className={`p-2 ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
+			>
+				Italic
+			</Button>
+			<Button
+				onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+				className={`p-2 ${editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}`}
+			>
+				Heading 1
+			</Button>
+			<Button
+				onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+				className={`p-2 ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}`}
+			>
+				Heading 2
+			</Button>
+			<Button
+				onClick={() => editor.chain().focus().toggleBulletList().run()}
+				className={`p-2 ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+			>
+				Bullet List
+			</Button>
+			<Button
+				onClick={() => editor.chain().focus().toggleOrderedList().run()}
+				className={`p-2 ${editor.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+			>
+				Ordered List
+			</Button>
+			<Button
+				onClick={() => editor.chain().focus().setTextAlign('left').run()}
+				className={`p-2 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+			>
+				Left Align
+			</Button>
+			<Button
+				onClick={() => editor.chain().focus().setTextAlign('center').run()}
+				className={`p-2 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+			>
+				Center Align
+			</Button>
+			<Button
+				onClick={() => editor.chain().focus().setTextAlign('right').run()}
+				className={`p-2 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+			>
+				Right Align
+			</Button>
+		</div>
+	);
+};
+
+
+
 
 export default function NewsCategoryPageClient({ newsContent, initialPosts, categories }: NewsPageProps) {
 	const params = useParams();
@@ -198,15 +274,13 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 
 	function stripHtml(html: string) {
 		if (typeof window === 'undefined') {
-			// Simple server-side compatible stripping
-			return html.replace(/<[^>]*>?/gm, '').substring(0, 150);
+			return html.replace(/<[^>]*>?/gm, '').substring(0, 150) + "...";
 		}
 
 		const doc = new DOMParser().parseFromString(html, "text/html");
 		const text = doc.body.textContent || "";
 		return text.length > 150 ? `${text.substring(0, 150)}...` : text;
 	}
-
 
 
 	useEffect(() => {
@@ -219,6 +293,34 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 		console.log("Filtered Posts:", filteredPosts);
 		setPosts(filteredPosts);
 	}, [slug, initialPosts]);
+
+
+	// Update your useEditor configuration
+	const editor = useEditor({
+		extensions: [
+			StarterKit,
+			TextAlign.configure({ types: ['heading', 'paragraph'] }),
+			TextStyle,
+			Color,
+			Placeholder.configure({
+				placeholder: 'Type your news content here...',
+				emptyEditorClass: 'is-editor-empty',
+				emptyNodeClass: 'is-node-empty',
+			}),
+		],
+		content: newPost.content,
+		onUpdate: ({ editor }) => {
+			setNewPost({ ...newPost, content: editor.getHTML() });
+		},
+	});
+
+	// Add this useEffect to handle content synchronization
+	useEffect(() => {
+		if (editor && newPost.content !== editor.getHTML()) {
+			editor.commands.setContent(newPost.content);
+		}
+	}, [newPost.content, editor]);
+
 
 
 
@@ -261,7 +363,6 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 
 
 
-			{/* Admin: Add News Post Form */}
 			{isAdmin && showAddPost && (
 				<div className="container mx-auto px-4 mt-6 bg-white p-6 shadow-lg rounded-lg">
 					<h2 className="text-xl font-bold mb-4">Create a News Post</h2>
@@ -275,18 +376,24 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 						className="w-full p-2 mb-4 border rounded"
 					/>
 
-					{/* Content Editor */}
-					<ReactQuill value={newPost.content} onChange={(value) => setNewPost({ ...newPost, content: value })} />
+
+					{/* Tiptap Editor */}
+					<div className="border rounded-lg shadow-sm">
+						<MenuBar editor={editor} />
+						<div className="p-4 min-h-[300px] prose focus:outline-none">
+							<EditorContent editor={editor} />
+						</div>
+					</div>
 
 					{/* Image Upload */}
 					<ImageUpload value={newPost.image} onChange={(url) => setNewPost({ ...newPost, image: url })} />
 
 					{/* Category Selection */}
-					<label className="block text-sm font-medium mb-2">Category</label>
+					<h2 className="text-xl font-bold mt-10">Category</h2>
 					<select
 						value={selectedCategory || ""}
 						onChange={(e) => setSelectedCategory(e.target.value)}
-						className="w-full p-2 mb-4 border rounded"
+						className="w-full p-2 mb-5 border rounded"
 						required
 					>
 						<option value="" disabled>Select a category</option>
@@ -309,18 +416,13 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 				</div>
 			)}
 
-
-
 			{/* Category Sidebar */}
-			<div className="flex flex-grow">
-				<CategorySidebar categories={categories} basePath="news" />
+			<div className="flex flex-col md:flex-row flex-grow">
+				<CategorySidebar categories={categories} basePath="news" className="w-full md:w-full" />
 
 				<main className="flex-grow p-4">
 					{/* Search Bar and Filter */}
 					<section className="container mx-auto px-4 mt-8">
-						<h2 className="text-5xl font-bold text-center mb-4">
-							{currentCategory?.name}
-						</h2>
 						<div className="flex justify-evenly">
 							<input
 								type="text"
@@ -350,24 +452,43 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 											<Image src={post.image} alt={post.title} fill className="rounded-t-lg object-cover" />
 										</div>
 									</CardHeader>
-									<CardContent>
+									<CardContent className="break-words">
 										<CardTitle>{post.title}</CardTitle>
+
+										{/* Date */}
 										<p className="text-sm text-gray-600">{new Date(post.date).toDateString()}</p>
-										{/* Category under the date */}
-										{post.categories && (
-											<p className="text-sm font-semibold text-ss-blue">
-												{post.categories.map((cat) => cat.name).join(", ")}
-											</p>
-										)}
+
+
+										{/* Categories under the date */}
+										<p className="text-sm font-semibold text-ss-blue">
+											{post.categories.map((cat, index) => {
+												const slug = cat.category.name.toLowerCase().replace(/\s+/g, "-"); // Convert to lowercase and replace spaces
+												return (
+													<span key={slug}>
+														<Link href={`/news/categories/${slug}`} className="hover:underline hover:text-blue-600">
+															{cat.category.name}
+														</Link>
+														{index < post.categories.length - 1 && ", "}
+													</span>
+												);
+											})}
+										</p>
+
+
+										{/* Post Preview */}
 										<p>
 											{(() => {
 												const textContent = stripHtml(post.content);
 												return textContent.length > 150 ? `${textContent.substring(0, 150)}...` : textContent;
 											})()}
 										</p>
+
+										{/* Read More Link */}
 										<Link href={`/news/${post.id}`} className="bg-ss-blue text-white max-w-24 px-3 py-2 rounded block mt-4">
 											Read More
 										</Link>
+
+										{/* Admin Controls */}
 										{isAdmin && (
 											<div className="mt-4 flex justify-between">
 												<Link href={`/news/${post.id}/edit`} className="bg-blue-500 text-white px-2 py-2 rounded">Edit</Link>
@@ -378,8 +499,8 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 								</Card>
 							))}
 						</div>
-
 					</section>
+
 
 
 				</main>

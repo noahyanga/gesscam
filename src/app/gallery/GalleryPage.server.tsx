@@ -23,6 +23,12 @@ export default async function GalleryPageWrapper() {
         description: true,
         imageUrl: true,
         date: true,
+        categories: {
+          select: {
+            galleryImageId: true,
+            category: true,
+          }
+        }
       }
     }),
 

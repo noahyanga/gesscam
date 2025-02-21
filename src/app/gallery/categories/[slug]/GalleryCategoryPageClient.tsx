@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -71,6 +72,7 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 	const [searchTerm, setSearchTerm] = useState("");
 	const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
 
+	const closeModal = () => setModalImage(null);
 
 	useEffect(() => {
 		if (!slug) return;
@@ -249,9 +251,9 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 				onEditClick={() => setEditHero(true)}
 			/>
 
-			<main className="container mx-auto px-4 mt-8">
-				<div className="flex flex-grow">
-					<CategorySidebar categories={categories} basePath="gallery" />
+			<main className=" flex flex-col md:flex-row flex-grow">
+				<div className="flex flex-col md:flex-row flex-grow">
+					<CategorySidebar categories={categories} basePath="gallery" className="w-full md:w-full" />
 
 					<div className="flex-1 ml-8">
 						{/* Admin: Edit Hero Section */}
@@ -308,35 +310,36 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 						)}
 
 						{/* Search and Sort */}
-						<section className="container mx-auto px-4 mt-8">
-							<h2 className="text-5xl font-bold text-center mb-4">
-								{currentCategory?.name}
-							</h2>
-							<div className="flex justify-evenly">
+						{/* Search and Sort */}
+						<div className="mt-10 mb-8 px-4">
+
+							{/* Search and Filter Row */}
+							<div className="flex flex-col sm:flex-row gap-4 w-full max-w-4xl mx-auto">
 								<input
 									type="text"
-									placeholder="Search images..."
+									placeholder="Search for images..."
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
-									className="w-1/2 p-3 border rounded"
+									className="w-full sm:flex-1 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
 								/>
 								<select
 									value={sortOrder}
 									onChange={(e) => setSortOrder(e.target.value)}
-									className="p-3 border rounded"
+									className="w-full sm:w-auto p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
 								>
 									<option value="newest">Newest First</option>
 									<option value="oldest">Oldest First</option>
 								</select>
 							</div>
-						</section>
+						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+						<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
 							{filteredImages.length === 0 ? (
 								<p className="text-center text-gray-600">No images available.</p>
 							) : (
 								filteredImages.map((item) => (
-									<Card key={item.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition-shadow duration-300">
+									<Card key={item.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition-shadow duration-300 mt-6 mb-4">
 										<div className="relative">
 											<div
 												className="relative w-full h-56 overflow-hidden cursor-pointer"
@@ -359,6 +362,27 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 												<p className="text-sm text-gray-600 mt-2">
 													{new Date(item.date).toLocaleDateString()}
 												</p>
+
+												{/* Categories under the date */}
+												<p className="text-sm font-semibold text-ss-blue">
+													{item.categories.map((cat, index) => {
+														const categoryName = cat.category?.name || "Uncategorized";
+														const slug = categoryName.toLowerCase().replace(/\s+/g, "-"); // Convert to lowercase and replace spaces
+														return (
+															<span key={slug}>
+																<Link href={`/gallery/categories/${slug}`} className="hover:underline hover:text-blue-600">
+																	{categoryName}
+																</Link>
+																{index < item.categories.length - 1 && ", "}
+															</span>
+														);
+													})}
+												</p>
+
+
+
+
+
 												{isAdmin && (
 													<div className="mt-4 flex justify-between">
 														<button
@@ -391,149 +415,155 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 
 					</div>
 				</div>
-			</main>
+			</main >
 
 			{/* Modal for Viewing Image */}
 			{modalImage && (
 				<div
-					className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+					className="fixed inset-0 flex items-center justify-center z-[9999] backdrop-blur-sm"
 					onClick={() => setModalImage(null)}
 				>
 					<div
-						className="relative max-w-4xl w-full mx-4 bg-white rounded-lg"
+						className="relative rounded-xl max-w-lg w-full h-auto overflow-hidden shadow-xl m-4"
 						onClick={(e) => e.stopPropagation()}
 					>
-						<button
-							onClick={() => setModalImage(null)}
-							className="absolute top-2 right-2 z-10"
-						>
-							<XMarkIcon className="w-6 h-6" />
-						</button>
-						<div className="relative h-[600px]">
+						{/* Close Button with Soft Hover */}
+
+						<XMarkIcon
+							className=" w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 hover:bg-white/70 text-ss-red cursor-pointer transition-all mb-5"
+							onClick={closeModal}
+						/>
+
+						{/* Scrollable Image Container */}
+						<div className="relative w-full max-h-[70vh] overflow-auto rounded-t-xl">
 							<Image
 								src={modalImage.imageUrl}
 								alt={modalImage.title}
-								fill
-								className="object-contain"
+								width={1200}
+								height={800}
+								className="w-full h-auto object-contain" // 'object-contain' ensures image fits inside container
 							/>
 						</div>
-						<div className="p-4">
-							<h2 className="text-xl font-bold">{modalImage.title}</h2>
-							<p className="mt-2">{modalImage.description}</p>
+
+						{/* Modal Content with Dark Text Background */}
+						<div className="bg-ss-black/70 text-white p-6 rounded-b-xl">
+							<h2 className="text-xl sm:text-2xl font-semibold mb-4">{modalImage.title}</h2>
+							<p className="text-sm sm:text-base">{modalImage.description}</p>
 						</div>
 					</div>
 				</div>
 			)}
+
+
+
 
 			{/* Modal for Adding a New Image */}
-			{isAdmin && showAddImage && (
-				<div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-					<div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
-						<h2 className="text-xl font-bold mb-4">Add New Image</h2>
-						<input
-							type="text"
-							placeholder="Image Title"
-							value={newImage.title}
-							onChange={(e) => setNewImage({ ...newImage, title: e.target.value })}
-							className="w-full p-2 mb-4 border rounded"
-						/>
-						<textarea
-							placeholder="Image Description"
-							value={newImage.description}
-							onChange={(e) => setNewImage({ ...newImage, description: e.target.value })}
-							className="w-full p-2 mb-4 border rounded"
-							rows={3}
-						/>
-						<ImageUpload
-							value={newImage.imageUrl}
-							onChange={(url) => setNewImage({ ...newImage, imageUrl: url })}
-						/>
+			{
+				isAdmin && showAddImage && (
+					<div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+						<div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4">
+							<h2 className="text-xl font-bold mb-4">Add New Image</h2>
+							<input
+								type="text"
+								placeholder="Image Title"
+								value={newImage.title}
+								onChange={(e) => setNewImage({ ...newImage, title: e.target.value })}
+								className="w-full p-2 mb-4 border rounded"
+							/>
+							<textarea
+								placeholder="Image Description"
+								value={newImage.description}
+								onChange={(e) => setNewImage({ ...newImage, description: e.target.value })}
+								className="w-full p-2 mb-4 border rounded"
+								rows={3}
+							/>
+							<ImageUpload
+								value={newImage.imageUrl}
+								onChange={(url) => setNewImage({ ...newImage, imageUrl: url })}
+							/>
 
-						{/* Category Selection */}
-						<label className="block text-sm font-medium mb-2">Category</label>
-						<select
-							value={selectedCategory || ""}
-							onChange={(e) => setSelectedCategory(e.target.value)}
-							className="w-full p-2 mb-4 border rounded"
-							required
-						>
-							<option value="" disabled>
-								Select a category
-							</option>
-							{categoryList.map((cat) => (
-								<option key={cat.id} value={cat.id}>
-									{cat.name}
+							{/* Category Selection */}
+							<h2 className="text-xl font-bold mb-10">Category</h2>
+							<select
+								value={selectedCategory || ""}
+								onChange={(e) => setSelectedCategory(e.target.value)}
+								className="w-full p-2 mb-4 border rounded"
+								required
+							>
+								<option value="" disabled>
+									Select a category
 								</option>
-							))}
-						</select>
+								{categoryList.map((cat) => (
+									<option key={cat.id} value={cat.id}>
+										{cat.name}
+									</option>
+								))}
+							</select>
 
-						<div className="flex justify-end gap-4 mt-4">
-							<Button onClick={handleAddImage}>Save</Button>
-							<Button variant="outline" onClick={() => setShowAddImage(false)}>
-								Cancel
-							</Button>
+							<div className="flex justify-end gap-4 mt-4">
+								<Button onClick={handleAddImage}>Save</Button>
+								<Button variant="outline" onClick={() => setShowAddImage(false)}>
+									Cancel
+								</Button>
+							</div>
 						</div>
 					</div>
-				</div>
-			)}
+				)
+			}
 
 			{/* Edit Image Modal */}
-			{isAdmin && editImage && (
-				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-					<div className="bg-white p-6 rounded-lg w-full max-w-md">
-						<h2 className="text-xl font-bold mb-4">Edit Image</h2>
-						<input
-							type="text"
-							value={editImage.title}
-							onChange={(e) => setEditImage({ ...editImage, title: e.target.value })}
-							placeholder="Title"
-							className="w-full p-2 border rounded mb-4"
-						/>
-						<textarea
-							value={editImage.description}
-							onChange={(e) => setEditImage({ ...editImage, description: e.target.value })}
-							placeholder="Description"
-							className="w-full p-2 border rounded mb-4"
-							rows={3}
-						/>
-						<ImageUpload value={editImage.imageUrl} onChange={(url) => setEditImage({ ...editImage, imageUrl: url })} />
+			{
+				isAdmin && editImage && (
+					<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+						<div className="bg-white p-6 rounded-lg w-full max-w-md">
+							<h2 className="text-xl font-bold mb-4">Edit Image</h2>
+							<input
+								type="text"
+								value={editImage.title}
+								onChange={(e) => setEditImage({ ...editImage, title: e.target.value })}
+								placeholder="Title"
+								className="w-full p-2 border rounded mb-4"
+							/>
+							<textarea
+								value={editImage.description}
+								onChange={(e) => setEditImage({ ...editImage, description: e.target.value })}
+								placeholder="Description"
+								className="w-full p-2 border rounded mb-4"
+								rows={3}
+							/>
+							<ImageUpload value={editImage.imageUrl} onChange={(url) => setEditImage({ ...editImage, imageUrl: url })} />
 
 
-						{/* Category Selection */}
-						<label className="block text-sm font-medium mb-2">Category</label>
-						<select
-							value={selectedCategory || ""}
-							onChange={(e) => setSelectedCategory(e.target.value)}
-							className="w-full p-2 mb-4 border rounded"
-							required
-						>
-							<option value="" disabled>
-								Select a category
-							</option>
-							{categoryList.map((cat) => (
-								<option key={cat.id} value={cat.id}>
-									{cat.name}
+							{/* Category Selection */}
+							<label className="block text-sm font-medium mb-2">Category</label>
+							<select
+								value={selectedCategory || ""}
+								onChange={(e) => setSelectedCategory(e.target.value)}
+								className="w-full p-2 mb-4 border rounded"
+								required
+							>
+								<option value="" disabled>
+									Select a category
 								</option>
-							))}
-						</select>
-
-
-
-						<div className="flex justify-end space-x-4 mt-4">
-							<Button onClick={handleSaveImageEdit} className="bg-blue-500 text-white px-4 py-2 rounded">
-								Save Changes
-							</Button>
-							<Button onClick={() => setEditImage(null)} className="bg-gray-500 text-white px-4 py-2 rounded">
-								Cancel
-							</Button>
+								{categoryList.map((cat) => (
+									<option key={cat.id} value={cat.id}>
+										{cat.name}
+									</option>
+								))}
+							</select>
+							<div className="flex justify-end space-x-4 mt-4">
+								<Button onClick={handleSaveImageEdit} className="bg-blue-500 text-white px-4 py-2 rounded">
+									Save Changes
+								</Button>
+								<Button onClick={() => setEditImage(null)} className="bg-gray-500 text-white px-4 py-2 rounded">
+									Cancel
+								</Button>
+							</div>
 						</div>
 					</div>
-				</div>
-			)}
-
-
-
+				)
+			}
 			<Footer />
-		</div>
+		</div >
 	);
 }

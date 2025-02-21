@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { connect } from 'http2';
 
 export async function GET(
 	request: Request,
@@ -10,7 +11,7 @@ export async function GET(
 	try {
 
 		const post = await prisma.newsPost.findUnique({
-			where: { id },
+			where: { id: params.id },
 			include: {
 				comments: {
 					orderBy: { createdAt: "desc" },
@@ -27,6 +28,18 @@ export async function GET(
 
 
 
+		const user = await prisma.user.findUnique({
+			where: { id: params.id },
+			select: {
+				username: true,
+			},
+		});
+
+		console.log("Fetched Username:", user);
+
+
+
+
 
 		if (!post) {
 			return NextResponse.json(
@@ -35,7 +48,7 @@ export async function GET(
 			)
 		}
 
-		return NextResponse.json(post)
+		return NextResponse.json({ post, user })
 	} catch (error) {
 		console.error('API Error:', error)
 		return NextResponse.json(
@@ -94,19 +107,38 @@ export async function DELETE(
 	}
 }
 
-export async function PUT(req, { params }) {
+export async function PUT(req: Request, { params }: { params: { id: string } }) {
 	const { id } = params;
-	const { title, content, image } = await req.json(); // Get updated values from the request body
-
-	if (!id || !title || !content || !image) {
-		return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-	}
+	const { title, content, image, categoryId } = await req.json(); // Get updated values from the request body
 
 	try {
+		if (!id || !title.trim() || !content.trim() || !image.trim() || !categoryId) {
+			return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+		}
+
+		await prisma.newsPostCategory.deleteMany({
+			where: { newsPostId: id },
+		});
+
+
 		const updatedPost = await prisma.newsPost.update({
 			where: { id },
-			data: { title, content, image },
+			data: {
+				title,
+				content,
+				image,
+				categories: {
+					create: categoryId.map((cat) => ({
+						category: { connect: { id: cat } },
+					})),
+				},
+			},
+			include: { categories: true },
 		});
+
+
+		console.log("Updated image with new categories:", { id, title, content, image, categoryId });
+
 
 		return NextResponse.json(updatedPost, { status: 200 });
 	} catch (error) {
@@ -115,4 +147,44 @@ export async function PUT(req, { params }) {
 	}
 }
 
-
+//export async function PUT(req: Request, { params }: { params: { id: string } }) {
+//	const { id } = params;
+//	const { title, description, imageUrl, categoryIds } = await req.json();
+//
+//	try {
+//		if (!id || !title.trim() || !description.trim() || !imageUrl.trim() || !categoryIds.length) {
+//			return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+//		}
+//
+//		// Step 1: Remove existing category associations
+//		await prisma.galleryImageCategory.deleteMany({
+//			where: { galleryImageId: id },
+//		});
+//
+//		// Step 2: Update the image and reassign categories
+//		const updatedImage = await prisma.galleryImage.update({
+//			where: { id },
+//			data: {
+//				title,
+//				description,
+//				imageUrl,
+//				categories: {
+//					create: categoryIds.map((categoryId) => ({
+//						category: { connect: { id: categoryId } },
+//					})),
+//				},
+//			},
+//			include: { categories: true },
+//		});
+//
+//		console.log("Updated image with new categories:", { id, title, description, imageUrl, categoryIds });
+//
+//		return NextResponse.json(updatedImage, { status: 200 });
+//	} catch (error) {
+//		console.error("Error updating image:", error);
+//		return NextResponse.json({ error: "Failed to update image" }, { status: 500 });
+//	}
+//}
+//
+//
+//

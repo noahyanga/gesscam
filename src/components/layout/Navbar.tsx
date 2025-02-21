@@ -10,6 +10,7 @@ import Image from "next/image";
 const Navbar = () => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  const username = session?.user?.username;
 
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
@@ -35,7 +36,6 @@ const Navbar = () => {
     },
     { href: "/news", label: "News" },
     { href: "/gallery", label: "Gallery" },
-    { href: "/register", label: "Register/Login" },
   ];
 
   return (
@@ -45,9 +45,9 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href="/home" className="flex items-center space-x-2">
           <Image
-            src="/images/gesscam.svg"
+            src="/gesscam-logo.png"
             alt="GESSCAM Logo"
             width={150}
             height={50}
@@ -102,7 +102,7 @@ const Navbar = () => {
           {session ? (
             <div className="flex items-center space-x-4">
               <span className="text-green-400 font-semibold">
-                {isAdmin ? "Admin Panel" : "Logged In"}
+                {isAdmin ? "Admin Panel" : `Welcome, ${username}`}
               </span>
               <button
                 onClick={() => signOut()}
@@ -131,7 +131,7 @@ const Navbar = () => {
 
       {/* Mobile Dropdown */}
       {isOpen && (
-        <div className="md:hidden px-4 pt-4 pb-3 space-y-3 bg-ss-blue transition-opacity duration-300 opacity-95">
+        <div className="md:hidden px-4 pt-4 pb-3 space-y-3 ss-blue/90 backdrop-blur-sm shadow-sm py-3">
           {navItems.map((item, index) => (
             <div key={index}>
               {item.dropdown ? (

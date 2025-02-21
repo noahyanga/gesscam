@@ -75,6 +75,29 @@
     @apply bg-background text-foreground;
   }
 
+  .is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #94a3b8;
+    pointer-events: none;
+    height: 0;
+    font-style: italic;
+  }
 
+  .is-node-empty::before {
+    content: attr(data-placeholder);
+    color: #94a3b8;
+    float: left;
+    pointer-events: none;
+    height: 0;
+    font-style: italic;
+  }
+
+  /* Add ProseMirror focus styling */
+  .ProseMirror:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
 
 }

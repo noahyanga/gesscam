@@ -14,6 +14,12 @@ import ImageUpload from "@/components/admin/ImageUpload";
 import CategorySidebar from "@/components/layout/CategorySidebar";
 import parse from 'html-react-parser';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
+import Color from '@tiptap/extension-color';
+import TextStyle from '@tiptap/extension-text-style';
+import Placeholder from '@tiptap/extension-placeholder';
 
 // Load React-Quill dynamically to prevent SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -42,14 +48,83 @@ interface NewsPageProps {
     content: string;
     image: string;
     date: string;
-    categories: { id: string; name: string; slug: string }[]; // Categories associated with the post
+    categories: Category[];
   }[];
   categories: Category[]; // Categories passed as prop
 }
 
+const MenuBar = ({ editor }: { editor: any }) => {
+  if (!editor) {
+    return null;
+  }
+
+  return (
+    <div className="border-b p-2 mb-4 flex flex-wrap gap-2">
+      <Button
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        className={`p-2 ${editor.isActive('bold') ? 'bg-gray-200' : ''}`}
+      >
+        Bold
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        className={`p-2 ${editor.isActive('italic') ? 'bg-gray-200' : ''}`}
+      >
+        Italic
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+        className={`p-2 ${editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}`}
+      >
+        Heading 1
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+        className={`p-2 ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}`}
+      >
+        Heading 2
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        className={`p-2 ${editor.isActive('bulletList') ? 'bg-gray-200' : ''}`}
+      >
+        Bullet List
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        className={`p-2 ${editor.isActive('orderedList') ? 'bg-gray-200' : ''}`}
+      >
+        Ordered List
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().setTextAlign('left').run()}
+        className={`p-2 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+      >
+        Left Align
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().setTextAlign('center').run()}
+        className={`p-2 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+      >
+        Center Align
+      </Button>
+      <Button
+        onClick={() => editor.chain().focus().setTextAlign('right').run()}
+        className={`p-2 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+      >
+        Right Align
+      </Button>
+    </div>
+  );
+};
+
+
+
+
 export default function NewsPageClient({ newsContent, initialPosts, categories }: NewsPageProps) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  const user = session?.user?.role === "admin";
 
   // States for posts and hero section
   const [posts, setPosts] = useState(initialPosts);
@@ -107,7 +182,10 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
   const filteredPosts = posts
     .filter((post) =>
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchQuery.toLowerCase())
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.categories.some(category =>
+        category.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     )
     .sort((a, b) => {
       const dateA = new Date(a.date).getTime();
@@ -117,6 +195,8 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
       } else {
         return dateA - dateB; // Oldest first
       }
+
+
     });
 
   // *** Calculate the posts for the current page ***
@@ -230,6 +310,32 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
     return text.length > 150 ? `${text.substring(0, 150)}...` : text;
   }
 
+  // Update your useEditor configuration
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TextStyle,
+      Color,
+      Placeholder.configure({
+        placeholder: 'Type your news content here...',
+        emptyEditorClass: 'is-editor-empty',
+        emptyNodeClass: 'is-node-empty',
+      }),
+    ],
+    content: newPost.content,
+    onUpdate: ({ editor }) => {
+      setNewPost({ ...newPost, content: editor.getHTML() });
+    },
+  });
+
+  // Add this useEffect to handle content synchronization
+  useEffect(() => {
+    if (editor && newPost.content !== editor.getHTML()) {
+      editor.commands.setContent(newPost.content);
+    }
+  }, [newPost.content, editor]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
@@ -307,18 +413,24 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
             className="w-full p-2 mb-4 border rounded"
           />
 
-          {/* Content Editor */}
-          <ReactQuill value={newPost.content} onChange={(value) => setNewPost({ ...newPost, content: value })} />
+
+          {/* Tiptap Editor */}
+          <div className="border rounded-lg shadow-sm">
+            <MenuBar editor={editor} />
+            <div className="p-4 min-h-[300px] prose focus:outline-none">
+              <EditorContent editor={editor} />
+            </div>
+          </div>
 
           {/* Image Upload */}
           <ImageUpload value={newPost.image} onChange={(url) => setNewPost({ ...newPost, image: url })} />
 
           {/* Category Selection */}
-          <label className="block text-sm font-medium mb-2">Category</label>
+          <h2 className="text-xl font-bold mt-10">Category</h2>
           <select
             value={selectedCategory || ""}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full p-2 mb-4 border rounded"
+            className="w-full p-2 mb-5 border rounded"
             required
           >
             <option value="" disabled>Select a category</option>
@@ -342,18 +454,19 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
       )}
 
       {/* Sidebar and Main Content */}
-      <div className="flex flex-grow">
+      <div className="flex flex-col md:flex-row flex-grow">
         {/* Category Sidebar */}
         <CategorySidebar
           categories={categories}
           basePath="news" // This ensures the links are relative to "news"
+          className="w-full md:w-full"
         />
 
         {/* Main content */}
         <main className="flex-grow p-4">
           {/* Search Bar and Filter */}
           <section className="container mx-auto px-4 mt-8">
-            <h2 className="text-5xl font-bold text-center mb-4">News Feed</h2>
+            <h2 className="text-4xl font-bold text-center mb-4">News Feed</h2>
             <div className="flex justify-evenly">
               <input
                 type="text"
@@ -376,6 +489,9 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
           {/* News Posts */}
           <section className="container mx-auto px-4 mt-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4 mb-6">
+
+
+
               {currentPosts.map((post) => (
                 <Card key={post.id} className="bg-yellow-50 shadow-lg hover:shadow-xl transition duration-300">
                   <CardHeader>
@@ -383,24 +499,46 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
                       <Image src={post.image} alt={post.title} fill className="rounded-t-lg object-cover" />
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="break-words">
                     <CardTitle>{post.title}</CardTitle>
+
+                    {/* Date */}
                     <p className="text-sm text-gray-600">{new Date(post.date).toDateString()}</p>
-                    {/* Category under the date */}
-                    {post.categories && (
-                      <p className="text-sm font-semibold text-ss-blue">
-                        {post.categories.map((cat) => cat.name).join(", ")}
-                      </p>
-                    )}
+
+
+                    {/* Categories under the date */}
+                    <p className="text-sm font-semibold text-ss-blue">
+                      {post.categories.map((cat, index) => {
+                        const categoryName = cat.category?.name || "Uncategorized";
+
+                        const slug = categoryName.toLowerCase().replace(/\s+/g, "-");
+
+                        return (
+                          <span key={slug}>
+                            <Link href={`/news/categories/${slug}`} className="hover:underline hover:text-blue-600">
+                              {categoryName}
+                            </Link>
+                            {index < post.categories.length - 1 && ", "}
+                          </span>
+                        );
+                      })}
+                    </p>
+
+
+                    {/* Post Preview */}
                     <p>
                       {(() => {
                         const textContent = stripHtml(post.content);
                         return textContent.length > 150 ? `${textContent.substring(0, 150)}...` : textContent;
                       })()}
                     </p>
+
+                    {/* Read More Link */}
                     <Link href={`/news/${post.id}`} className="bg-ss-blue text-white max-w-24 px-3 py-2 rounded block mt-4">
                       Read More
                     </Link>
+
+                    {/* Admin Controls */}
                     {isAdmin && (
                       <div className="mt-4 flex justify-between">
                         <Link href={`/news/${post.id}/edit`} className="bg-blue-500 text-white px-2 py-2 rounded">Edit</Link>
@@ -411,46 +549,47 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
                 </Card>
               ))}
             </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <nav className="flex justify-center mt-8">
-                <ul className="inline-flex -space-x-px">
-                  <li>
-                    <button
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700"
-                    >
-                      Previous
-                    </button>
-                  </li>
-                  {Array.from({ length: totalPages }, (_, index) => (
-                    <li key={index}>
-                      <button
-                        onClick={() => setCurrentPage(index + 1)}
-                        className={`px-3 py-2 leading-tight border border-gray-300 ${currentPage === index + 1
-                          ? "text-blue-600 bg-blue-50"
-                          : "text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700"
-                          }`}
-                      >
-                        {index + 1}
-                      </button>
-                    </li>
-                  ))}
-                  <li>
-                    <button
-                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700"
-                    >
-                      Next
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            )}
           </section>
+
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <nav className="flex justify-center mt-8">
+              <ul className="inline-flex -space-x-px">
+                <li>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700"
+                  >
+                    Previous
+                  </button>
+                </li>
+                {Array.from({ length: totalPages }, (_, index) => (
+                  <li key={index}>
+                    <button
+                      onClick={() => setCurrentPage(index + 1)}
+                      className={`px-3 py-2 leading-tight border border-gray-300 ${currentPage === index + 1
+                        ? "text-blue-600 bg-blue-50"
+                        : "text-gray-500 bg-white hover:bg-gray-100 hover:text-gray-700"
+                        }`}
+                    >
+                      {index + 1}
+                    </button>
+                  </li>
+                ))}
+                <li>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700"
+                  >
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          )}
         </main>
       </div>
 

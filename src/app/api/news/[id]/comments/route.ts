@@ -13,7 +13,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
 		const newComment = await prisma.comment.create({
 			data: {
-				content,
+				content: content,
 				postId: params.id,
 				authorId: session.user.id,
 			},
@@ -59,10 +59,11 @@ export async function GET(req, { params }) {
 			createdAt: comment.createdAt,
 		}));
 
+
 		// 🔍 Debug: Log the formatted comments
 		console.log("Formatted comments being returned:", formattedComments);
 
-		return NextResponse.json(formattedComments, { status: 200 });
+		return NextResponse.json({ formattedComments, user }, { status: 200 });
 	} catch (error) {
 		console.error("Error fetching comments:", error);
 		return NextResponse.json({ error: "Failed to fetch comments" }, { status: 500 });

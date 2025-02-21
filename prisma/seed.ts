@@ -49,7 +49,7 @@ async function main() {
     {
       pageSlug: 'about',
       title: 'About Our Community',
-      heroImage: '/images/jug.svg',
+      heroImage: '/images/map.svg',
       content: 'About page content...',
       images: []
     },
@@ -63,28 +63,14 @@ async function main() {
     {
       pageSlug: 'gallery',
       title: 'Community Gallery',
-      heroImage: '/images/folk.svg',
+      heroImage: '/images/tree.png',
       content: 'Gallery page content...',
-      images: []
-    },
-    {
-      pageSlug: 'schedule',
-      title: 'Event Schedule',
-      heroImage: '/images/tribe3.svg',
-      content: 'Schedule page content...',
-      images: []
-    },
-    {
-      pageSlug: 'membership',
-      title: 'Membership',
-      heroImage: '/images/tribe.svg',
-      content: 'Membership page content...',
       images: []
     },
     {
       pageSlug: 'exec-body',
       title: 'Executive Body',
-      heroImage: '/images/tribe2.svg',
+      heroImage: '/images/leader.png',
       content: 'Executive body page content...',
       images: []
     }
@@ -106,7 +92,6 @@ async function main() {
       { name: "Sports", slug: "sports" },
       { name: "Fundraising", slug: "fundraising" },
       { name: "Workshops", slug: "workshops" },
-      { name: "Gallery Highlights", slug: "gallery-highlights" },
     ],
   })
 
@@ -169,12 +154,9 @@ async function main() {
     data: [
       {
         title: "Our Mission",
-        content: "<p>We strive to create a vibrant community by...</p>",
+        content:
+          "<p>We are dedicated to fostering a strong and engaged community. Our mission is to create meaningful opportunities for collaboration, learning, and growth.</p>",
       },
-      {
-        title: "Our Values",
-        content: "<ul><li>Unity</li><li>Transparency</li><li>Cultural Pride</li></ul>"
-      }
     ]
   });
 
@@ -238,19 +220,19 @@ async function main() {
       title: 'Community Gathering',
       description: 'Our monthly meetup',
       imageUrl: '/images/land.svg',
-      categories: ["community-events", "gallery-highlights"]
+      categories: ["community-events"]
     },
     {
       title: 'Folklorama',
       description: 'Annual cultural showcase',
-      imageUrl: '/images/land.svg',
+      imageUrl: '/images/jug.svg',
       categories: ["community-events"]
     },
 
     {
       title: 'Workshop Session',
       description: 'Learning new skills together',
-      imageUrl: '/images/folk2.svg',
+      imageUrl: '/images/tribe3.svg',
       categories: ["workshops"]
     }
   ]
@@ -282,7 +264,7 @@ async function main() {
       {
         name: "Surur Yanga",
         position: "President",
-        imageUrl: "/images/folk.svg",
+        imageUrl: "/images/folk3.svg",
         order: 1
       },
       {
@@ -300,13 +282,13 @@ async function main() {
       {
         name: "Member 4",
         position: "Government Representative",
-        imageUrl: "/images/globe.svg",
+        imageUrl: "/images/tribe.svg",
         order: 2
       },
       {
         name: "Member 5",
         position: "Event Organizer",
-        imageUrl: "/images/window.svg",
+        imageUrl: "/images/tree.png",
         order: 2
       },
 

@@ -357,9 +357,10 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
         </div>
       )}
 
-      <section className="container mx-auto px-6 space-y-12">
+
+      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
         {posts.map((post) => (
-          <div key={post.id} className="bg-white p-4 mt-4">
+          <div key={post.id} className="bg-gray-50 p-4 mt-4">
             {isAdmin && editPostId === post.id ? (
               <>
                 <input
@@ -374,20 +375,44 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
                     <EditorContent editor={editPostEditor} />
                   </div>
                 </div>
-                <div className="mt-4 flex space-x-4">
-                  <Button onClick={() => handleSaveEditPost(post.id)} className="bg-blue-500">Save Changes</Button>
-                  <Button onClick={() => setEditPostId(null)} className="bg-gray-500">Cancel</Button>
+                <div className="mt-4 flex flex-wrap gap-4">
+                  <Button onClick={() => handleSaveEditPost(post.id)} className="bg-blue-500">
+                    Save Changes
+                  </Button>
+                  <Button onClick={() => setEditPostId(null)} className="bg-gray-500">
+                    Cancel
+                  </Button>
                 </div>
               </>
             ) : (
               <>
-                <h3 className="text-5xl text-ss-blue font-bold">{post.title}</h3>
-                <div
-                  className="prose max-w-none [&_li]:leading-[1.2] [&_li>p]:leading-[0.8]"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
-                />
+                <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
+                  <div className="w-full lg:w-1/2 text-center lg:text-left">
+                    <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ss-blue mb-4">
+                      {post.title}
+                    </h3>
+                    <div
+                      className="text-lg sm:text-xl prose max-w-none [&_li]:leading-[1.2] [&_li>p]:leading-[0.8]"
+                      dangerouslySetInnerHTML={{ __html: post.content }}
+                    />
+                    <a
+                      href="/about"
+                      className="mt-4 inline-block bg-ss-blue hover:bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg transition-colors duration-300"
+                    >
+                      Learn More
+                    </a>
+                  </div>
+                  <div className="w-full lg:w-1/3">
+                    <img
+                      src="/gesscam-logo.png"
+                      alt="About Us Image"
+                      className="rounded-lg w-full h-auto"
+                    />
+                  </div>
+                </div>
+
                 {isAdmin && (
-                  <div className="mt-4 flex space-x-4">
+                  <div className="mt-4 flex flex-wrap gap-4">
                     <Button
                       onClick={() => {
                         setEditPostId(post.id);
@@ -410,33 +435,10 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
         ))}
       </section>
 
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-6 flex items-center justify-between space-x-12">
-          <div className="w-1/2">
-            <h2 className="text-5xl font-bold text-ss-blue mb-6 text-left">About Us</h2>
-            <p className="text-gray-700 text-2xl text-left max-w-xl mb-6">
-              We are dedicated to fostering a strong and engaged community. Our mission is to
-              create meaningful opportunities for collaboration, learning, and growth.
-            </p>
-            <a href="/about" className="mt-4 inline-block bg-ss-blue hover:bg-blue-600 text-white px-8 py-3 rounded-lg shadow-lg hover:bg-ss-blue-dark transition-colors duration-300">
-              Learn More
-            </a>
-          </div>
-          <div className="w-1/3">
-            <img
-              src="images/gesscam.svg" // Replace with your image URL
-              alt="About Us Image"
-              className="rounded-lg shadow-xl w-full h-auto"
-            />
-          </div>
-        </div>
-      </section>
-
-
 
 
       {/* Call to Action Section */}
-      <section className="py-16 text-center bg-ss-blue text-white">
+      < section className="py-16 text-center bg-ss-blue text-white" >
         <div className="container mx-auto px-6">
           <h2 className="text-5xl font-bold mb-6">Get Involved</h2>
           <p className="text-2xl mx-auto mb-8 max-w-3xl">
@@ -452,11 +454,11 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
             </a>
           </div>
         </div>
-      </section>
+      </section >
 
 
       {/* News Posts Section */}
-      <section className="container mx-auto px-4 mt-8 mb-8">
+      < section className="container mx-auto px-4 mt-8 mb-8" >
         <h2 className="text-4xl font-bold mb-6 text-ss-blue text-center">Recent News</h2>
         <div className="relative overflow-hidden">
           <div
@@ -523,9 +525,9 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
             View All News
           </Link>
         </div>
-      </section>
+      </section >
 
       <Footer />
-    </div>
+    </div >
   );
 }

@@ -7,6 +7,7 @@ import Link from "next/link";
 import Button from "@/components/ui/button";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import parse from 'html-react-parser';
 
 interface NewsPostClientProps {
   post: {
@@ -30,9 +31,7 @@ export default function NewsPostClient({ post }: NewsPostClientProps) {
   const user = session?.user;
   const admin = session?.user?.role;
 
-  console.log("Session:", session);
-  console.log("User ID:", user?.username); // Log user ID to confirm it's correct
-  console.log("User Role:", user?.role); // Log user role to confirm it's correct
+  console.log("post", post);
 
   // State for adding comments
   const [comment, setComment] = useState("");
@@ -145,12 +144,10 @@ export default function NewsPostClient({ post }: NewsPostClientProps) {
                   <Image src={post.image} alt={post.title} fill className="object-cover" />
                 </div>
               )}
-              <div className="prose lg:prose-xl text-ss-black">
-                {post.content.split("\n").map((paragraph, index) => (
-                  <p key={index} className="mb-6">{paragraph}</p>
-                ))}
-              </div>
-
+              <div
+                className="prose lg:prose-xl text-ss-black"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
               {/* Comments Section */}
               <section className="mt-12 pt-8 border-t border-ss-blue">
                 <h2 className="text-2xl font-bold text-ss-blue mb-6">Comments</h2>
@@ -215,11 +212,17 @@ export default function NewsPostClient({ post }: NewsPostClientProps) {
                 )}
               </section>
 
-              <div className="mt-12">
-                <Button className="size-full bg-ss-blue hover:bg-ss-red text-ss-white">
-                  <Link href="/news">Back to News</Link>
+              <div className="mt-12 w-full">
+                <Button className="w-full bg-ss-blue hover:bg-blue-600 text-ss-white p-4 flex items-center justify-center">
+                  <Link
+                    href="/news"
+                    className="w-full h-full flex items-center justify-center"
+                  >
+                    Back to News
+                  </Link>
                 </Button>
               </div>
+
             </div>
           </div>
         </section>

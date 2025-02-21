@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "GESSCAM",
   description: "Greater Equatoria of South Sudan Community Association of Manitoba",
+  icons: {
+    icon: "/gesscam-logo.png",
+  },
 };
 
 export default async function RootLayout({
