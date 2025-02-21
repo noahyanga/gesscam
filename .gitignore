@@ -37,7 +37,7 @@ yarn-error.log*
 .vercel
 
 # prisma
-prisma/seed.ts
+**/seed.ts
 
 # typescript
 *.tsbuildinfo
