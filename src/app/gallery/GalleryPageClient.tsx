@@ -26,7 +26,6 @@ interface Category {
 }
 
 
-
 interface GalleryPageProps {
   galleryContent: PageContent | null;
   initialImages: GalleryImage[];

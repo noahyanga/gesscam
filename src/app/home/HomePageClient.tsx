@@ -14,7 +14,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/layout/HeroSection";
 import Button from "@/components/ui/button";
-import ImageUpload from "@/components/admin/ImageUpload";
+import ImageUpload from "@/components/Admin/ImageUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import '@/app/globals.css';
 
@@ -403,9 +403,11 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
                     </a>
                   </div>
                   <div className="w-full lg:w-1/3">
-                    <img
+                    <Image
                       src="/gesscam-logo.png"
                       alt="About Us Image"
+                      width={300}
+                      height={500}
                       className="rounded-lg w-full h-auto"
                     />
                   </div>
@@ -443,7 +445,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
           <h2 className="text-5xl font-bold mb-6">Get Involved</h2>
           <p className="text-2xl mx-auto mb-8 max-w-3xl">
             Join us in making a difference! Whether you want to participate, volunteer, or
-            support our initiatives, there's a place for you.
+            support our initiatives, there&apos;s a place for you.
           </p>
           <div className="flex justify-center gap-6">
             <a

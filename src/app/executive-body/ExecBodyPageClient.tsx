@@ -228,9 +228,12 @@ export default function ExecBodyPageClient({ execContent, initialMembers }: Exec
                 key={member.id}
                 className="bg-white shadow-md hover:shadow-lg transition duration-300 p-4 flex flex-col items-center text-center"
               >
-                <img
+                <Image
                   src={member.imageUrl}
                   alt={member.name}
+
+                  width={300}
+                  height={500}
                   className="w-64 h-64 rounded-full object-cover border-4 border-gray-300 shadow-sm"
                 />
                 <CardTitle className="text-xl font-bold text-gray-900 mt-3">

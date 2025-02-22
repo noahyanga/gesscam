@@ -1,5 +1,6 @@
 "use client";
 
+import { Image } from "lucide-react";
 import { useState } from "react";
 
 export default function ImageUpload({ value, onChange }) {
@@ -41,7 +42,7 @@ export default function ImageUpload({ value, onChange }) {
 	return (
 		<div>
 			<input type="file" onChange={handleUpload} />
-			{preview && <img src={preview} className="mt-2 max-w-xs" alt="Preview" />}
+			{preview && <Image src={preview} className="mt-2 max-w-xs" alt="Preview" />}
 		</div>
 	);
 }

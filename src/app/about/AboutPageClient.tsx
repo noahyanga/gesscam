@@ -6,7 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/layout/HeroSection";
 import Button from "@/components/ui/button";
-import ImageUpload from "@/components/admin/ImageUpload";
+import ImageUpload from "@/components/Admin/ImageUpload";
 import Image from "next/image";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -198,10 +198,6 @@ export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageP
       setContent(aboutContent.content);
     }
   }, [aboutContent]);
-
-  useEffect(() => {
-    editor?.commands.setContent(draftContent);
-  }, [editHero]);
 
 
   const handleSaveAboutContent = async () => {

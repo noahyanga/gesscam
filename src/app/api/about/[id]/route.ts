@@ -1,11 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // UPDATE a post
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(
+	request: NextRequest,
+	{ params }: { params: Promise<{ id: string }> }
+) {
 	try {
-		const { id } = params; // Now correctly extracted from route /api/about/{id}
-		const { title, content } = await req.json();
+		const { id } = await params;
+		const { title, content } = await request.json();
 
 		if (!title || !content) {
 			return NextResponse.json({ error: "Title and content are required" }, { status: 400 });
@@ -29,9 +32,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // DELETE a post
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+	request: NextRequest,
+	{ params }: { params: Promise<{ id: string }> }
+) {
 	try {
-		const { id } = params;
+		const { id } = await params;
+
 
 		const existingPost = await prisma.aboutPost.findUnique({ where: { id } });
 		if (!existingPost) {
