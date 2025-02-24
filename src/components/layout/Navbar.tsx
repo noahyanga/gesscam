@@ -1,26 +1,54 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import Button from "@/components/ui/button";
 import { Menu, X, ChevronDown } from "lucide-react";
 import Image from "next/image";
 
+interface Session {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    id?: string | null;
+    role?: string | null;
+    username?: string | null;
+  };
+  expires?: string;
+}
+
 const Navbar = () => {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
   const username = session?.user?.username;
+  console.log("user:", username);
 
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const previousSession = useRef<Session | null>(null); // Corrected useRef
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      if (previousSession.current) {
+        if (JSON.stringify(session) !== JSON.stringify(previousSession.current)) {
+          console.log("Session details have changed!");
+          console.log("Previous Session:", previousSession.current);
+          console.log("Current Session:", session);
+        }
+      }
+      previousSession.current = session;
+    }
+  }, [session]);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 

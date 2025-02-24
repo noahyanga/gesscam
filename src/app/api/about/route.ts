@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // UPDATE a post
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-	try {
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const { id } = params;
 		const { title, content } = await req.json();
 
@@ -31,8 +32,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 // DELETE a post
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-	try {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    try {
 		const { id } = params;
 
 		// Ensure post exists before deleting

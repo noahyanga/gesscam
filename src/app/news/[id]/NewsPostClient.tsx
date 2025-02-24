@@ -9,22 +9,26 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import parse from 'html-react-parser';
 
+
 interface NewsPostClientProps {
   post: {
     id: string;
     title: string;
     content: string;
-    date: string;
-    image?: string;
+    date: Date;
+    image: string;
     comments: {
       id: string;
       content: string;
-      createdAt: string;
+      createdAt: Date;
       userId: string;
-      username: string; // Assuming the username is returned from the backend
+      authorId: string;
+      postId: string;
+      author: { username: string };
     }[];
   };
 }
+
 
 export default function NewsPostClient({ post }: NewsPostClientProps) {
   const { data: session } = useSession();

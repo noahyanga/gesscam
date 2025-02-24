@@ -8,7 +8,7 @@ import Footer from '@/components/layout/Footer';
 import Navbar from '@/components/layout/Navbar';
 import HeroSection from '@/components/layout/HeroSection';
 import Button from '@/components/ui/button';
-import ImageUpload from '@/components/admin/ImageUpload';
+import ImageUpload from '@/components/Admin/ImageUpload';
 import type { PageContent, ExecMember } from '@prisma/client';
 import { ChevronDown, Plus, Edit2, Trash2 } from "lucide-react";
 

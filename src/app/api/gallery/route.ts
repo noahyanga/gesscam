@@ -6,21 +6,25 @@ export const revalidate = 60; // Revalidate every 60 seconds
 export async function GET() {
 	try {
 		const images = await prisma.galleryImage.findMany({
-			orderBy: { date: 'desc' },
+			orderBy: { date: "desc" },
 			select: {
 				id: true,
 				title: true,
 				description: true,
 				imageUrl: true,
+				date: true,
 				categories: {
 					select: {
-						id: true,
-						name: true,
-						slug: true,
+						category: {
+							select: {
+								id: true,
+								name: true,
+								slug: true,
+							},
+						},
 					},
 				},
-				date: true
-			}
+			},
 		});
 
 		const categories = await prisma.category.findMany({
@@ -50,7 +54,8 @@ export async function GET() {
 
 
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 	const { id } = params;
 	const { title, description, imageUrl } = await req.json(); // Get updated values from the request body
 
@@ -71,7 +76,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 	}
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 	const { id } = params;
 
 	if (!id) {
@@ -119,7 +125,7 @@ export async function POST(req: Request) {
 
 	} catch (error) {
 		console.error("Error creating post:", error);
-		return NextResponse.json({ error: "Server error", details: error.message }, { status: 500 });
+		return NextResponse.json({ error: "Server error", details: error }, { status: 500 });
 	}
 }
 

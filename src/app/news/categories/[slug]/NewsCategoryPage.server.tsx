@@ -1,14 +1,12 @@
-import { prisma } from "@/lib/prisma"; // Import prisma to fetch content
+import { prisma } from "@/lib/prisma";
 import NewsCategoryPageClient from "./NewsCategoryPageClient";
-import { getServerSession } from "next-auth"; // Get session using next-auth
-import { authOptions } from "@/lib/auth"; // Your auth options
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import SessionProviderWrapper from "@/components/Admin/SessionProviderWrapper";
 
 export default async function NewsPageWrapper() {
-	// Fetch session on the server-side
 	const session = await getServerSession(authOptions);
 
-	// Fetch news content, posts, and categories from the database
 	const [newsContent, initialPosts, categories] = await Promise.all([
 		prisma.pageContent.findUnique({
 			where: { pageSlug: "news" }
@@ -24,7 +22,7 @@ export default async function NewsPageWrapper() {
 				date: true,
 				categories: {
 					select: {
-						category: { // ✅ Get the actual Category object
+						category: {
 							select: {
 								id: true,
 								slug: true,
@@ -46,18 +44,19 @@ export default async function NewsPageWrapper() {
 		})
 	]);
 
+	// Transform initialPosts to match client-side expectations
+	const transformedPosts = initialPosts.map(post => ({
+		...post,
+		categories: post.categories.map(cat => cat.category)
+	}));
 
-
-	// Return the NewsPageClient component with the fetched content, posts, categories, and session
 	return (
 		<SessionProviderWrapper session={session}>
 			<NewsCategoryPageClient
 				newsContent={newsContent}
-				initialPosts={initialPosts}
+				initialPosts={transformedPosts}
 				categories={categories}
 			/>
 		</SessionProviderWrapper>
 	);
 }
-
-

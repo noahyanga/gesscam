@@ -18,6 +18,14 @@ import ImageUpload from "@/components/Admin/ImageUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import '@/app/globals.css';
 
+interface NewsPost {
+  id: string;
+  title: string;
+  content: string;
+  image: string;
+  date: Date;
+}
+
 interface HomePageProps {
   homeContent: {
     title: string;
@@ -29,13 +37,7 @@ interface HomePageProps {
     title: string;
     content: string;
   }[];
-  newsPosts: {
-    id: string;
-    title: string;
-    content: string;
-    image: string;
-    date: string;
-  }[];
+  newsPosts: NewsPost[];
 }
 
 const MenuBar = ({ editor }: { editor: any }) => {
@@ -249,8 +251,9 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
 
   // News slider state
   const [activeSlide, setActiveSlide] = useState(0);
+
   const chunkedNewsPosts = useMemo(() => {
-    const chunks = [];
+    const chunks: NewsPost[][] = [];
     for (let i = 0; i < newsPosts.length; i += 3) {
       chunks.push(newsPosts.slice(i, i + 3));
     }

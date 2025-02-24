@@ -26,7 +26,7 @@ interface AboutPageProps {
     id: string;
     title: string;
     content: string;
-    date: string;
+    date: Date;
   }[];
 }
 
@@ -98,6 +98,7 @@ const MenuBar = ({ editor }: { editor: any }) => {
 export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageProps) {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  console.log("status", isAdmin);
 
   // Main content states
   const [title, setTitle] = useState(aboutContent?.title || "About Us");
@@ -109,7 +110,6 @@ export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageP
   const [draftHeroImage, setDraftHeroImage] = useState(heroImage);
   const [draftContent, setDraftContent] = useState(content);
   const [editHero, setEditHero] = useState(false);
-  const [editMember, setEditMember] = useState<ExecMember | null>(null);
 
   // Posts states
   const [posts, setPosts] = useState(aboutPosts);
@@ -309,7 +309,7 @@ export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageP
             <Button
               onClick={() => setEditHero(true)}
               className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm"
-              variant="ghost"
+              variant="contained"
             >
               Edit Hero
             </Button>

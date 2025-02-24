@@ -10,11 +10,16 @@ import HeroSection from "@/components/layout/HeroSection";
 import Button from "@/components/ui/button";
 import ImageUpload from "@/components/Admin/ImageUpload";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-import type { PageContent, GalleryImage } from "@prisma/client";
+import type { PageContent } from "@prisma/client";
 import CategorySidebar from "@/components/layout/CategorySidebar";
 import Link from "next/link";
 
-
+interface NewImage {
+  title: string;
+  description: string;
+  imageUrl: string | null; // Allow string or null
+  categories: string[];
+}
 
 interface Category {
   id: string;
@@ -24,6 +29,17 @@ interface Category {
     galleryPosts: number;
   };
 }
+
+interface GalleryImage {
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  date: Date;
+  categories: { id: string; name: string; slug: string }[];
+}
+
+
 
 
 interface GalleryPageProps {
@@ -45,10 +61,17 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
   // When an image is being edited, its data is stored here
   const [editImage, setEditImage] = useState<GalleryImage | null>(null);
   const [showAddImage, setShowAddImage] = useState(false);
-  const [newImage, setNewImage] = useState({ title: "", description: "", imageUrl: null });
+  const [newImage, setNewImage] = useState<NewImage>({
+    title: "",
+    description: "",
+    imageUrl: null, // Initial value is null
+    categories: [],
+  });
+
+
   const [modalImage, setModalImage] = useState<GalleryImage | null>(null);
   const [categoryList, setCategoryList] = useState<Category[]>(categories);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState<string>("");
 
@@ -112,7 +135,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
       return;
     }
     try {
-      const categoryIds: number[] = [];
+      const categoryIds: string[] = [];
       if (selectedCategory) {
         categoryIds.push(selectedCategory);
       }
@@ -135,7 +158,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
       const createdImage = await response.json();
       setImages([createdImage, ...images]);
       setShowAddImage(false);
-      setNewImage({ title: "", description: "", imageUrl: null });
+      setNewImage({ title: "", description: "", imageUrl: null, categories: [] });
       setNewCategoryName("");
       setSelectedCategory(null);
     } catch (err) {
@@ -165,7 +188,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
         prevImages.map((img) => (img.id === imageId ? editedImage : img))
       );
 
-      setShowEditImage(false);
+      setEditImage(null);
 
     } catch (err) {
       console.error("Error updating image:", err);
@@ -231,9 +254,9 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
     )
     .sort((a, b) => {
       if (sortOrder === "newest") {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
       } else {
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
       }
     });
 
@@ -254,7 +277,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
       <Navbar />
 
       <HeroSection
-        title={title}
+        title={title || "Gallery Page"}
         heroImage={heroImage}
         isAdmin={isAdmin}
         onEditClick={() => setEditHero(true)}
@@ -322,6 +345,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
               value={selectedCategory || ""}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full p-3 border rounded-lg mb-4"
+              required
             >
               <option value="" disabled>Select a category</option>
               {categoryList.map((cat) => (
@@ -457,11 +481,11 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
                             {new Date(item.date).toLocaleDateString()}
                           </p>
 
-                          {/* Categories under the date */}
                           <p className="text-sm font-semibold text-ss-blue">
                             {item.categories.map((cat, index) => {
-                              const categoryName = cat.category?.name || "Uncategorized";
-                              const slug = categoryName.toLowerCase().replace(/\s+/g, "-"); // Convert to lowercase and replace spaces
+                              const categoryName = cat.name || "Uncategorized";
+                              const slug = cat.slug; // Use the slug from the category object
+
                               return (
                                 <span key={slug}>
                                   <Link href={`/gallery/categories/${slug}`} className="hover:underline hover:text-blue-600">

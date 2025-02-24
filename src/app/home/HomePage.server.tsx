@@ -8,7 +8,7 @@ export default async function HomePageWrapper() {
   const session = await getServerSession(authOptions);
 
   // Fetch both home and news content in parallel
-  const [homeContent, homePosts, newsContent, newsPosts] = await Promise.all([
+  const [homeContent, homePosts, newsPosts] = await Promise.all([
     prisma.pageContent.findUnique({
       where: { pageSlug: "home" }
     }),
@@ -18,9 +18,6 @@ export default async function HomePageWrapper() {
         title: true,
         content: true,
       }
-    }),
-    prisma.pageContent.findUnique({
-      where: { pageSlug: "news" }
     }),
     prisma.newsPost.findMany({
       orderBy: { date: "desc" },

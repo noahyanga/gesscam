@@ -13,12 +13,14 @@ interface CategorySidebarProps {
       galleryPosts?: number;
     };
   }[];
+  basePath?: string; // Add basePath prop
+  className?: string; //Add className prop
 }
 
-export default function CategorySidebar({ categories }: CategorySidebarProps) {
+export default function CategorySidebar({ categories, basePath = "", className = "" }: CategorySidebarProps) {
   const pathname = usePathname();
   const isGalleryPage = pathname.includes("/gallery");
-  const basePath = isGalleryPage ? "gallery" : "news";
+  const actualBasePath = basePath || (isGalleryPage ? "gallery" : "news"); // Use basePath prop or determine dynamically
 
   // Extract selected category from pathname
   const selectedCategory = pathname.includes("/categories/")
@@ -33,13 +35,13 @@ export default function CategorySidebar({ categories }: CategorySidebarProps) {
   );
 
   return (
-    <aside className="w-full md:w-1/4 bg-white shadow-md rounded-lg p-4 border border-gray-200">
+    <aside className={`${className} bg-white shadow-md rounded-lg p-4 border border-gray-200`}>
       <h3 className="text-xl font-semibold mb-4 text-gray-800">Categories</h3>
       <ul className="space-y-2">
         {/* "All" category link */}
         <li>
           <Link
-            href={`/${basePath}`}
+            href={`/${actualBasePath}`}
             className={`block px-4 py-2 rounded-lg transition-all ${!selectedCategory
               ? "bg-blue-500 text-white font-semibold shadow-md"
               : "hover:bg-gray-100 text-gray-700"
@@ -55,7 +57,7 @@ export default function CategorySidebar({ categories }: CategorySidebarProps) {
           return (
             <li key={category.id}>
               <Link
-                href={`/${basePath}/categories/${category.slug}`}
+                href={`/${actualBasePath}/categories/${category.slug}`}
                 className={`block px-4 py-2 rounded-lg transition-all ${isSelected
                   ? "bg-blue-500 text-white font-semibold shadow-md"
                   : "hover:bg-gray-100 text-gray-700"
@@ -70,4 +72,3 @@ export default function CategorySidebar({ categories }: CategorySidebarProps) {
     </aside>
   );
 }
-

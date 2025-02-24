@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 	const { id } = params;
 	const { name, position, imageUrl } = await req.json();
 
@@ -22,7 +23,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 	}
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 	const { id } = params;
 
 	if (!id) {
@@ -49,9 +51,29 @@ export async function POST(req: Request) {
 	}
 
 	try {
-		const newMember = await prisma.execMember.create({
-			data: { name, position, imageUrl },
+		// Fetch the highest existing order
+		const existingMembers = await prisma.execMember.findMany({
+			orderBy: {
+				order: 'desc',
+			},
+			take: 1,
 		});
+
+		let nextOrder = 1;
+		if (existingMembers.length > 0) {
+			nextOrder = existingMembers[0].order + 1;
+		}
+
+		const newMember = await prisma.execMember.create({
+			data: {
+				name,
+				position,
+				imageUrl,
+				order: nextOrder, // Add the calculated order
+			},
+		});
+
+
 
 		return NextResponse.json(newMember, { status: 201 });
 	} catch (error) {

@@ -1,18 +1,18 @@
 // app/gallery/GalleryPageWrapper.server.tsx
 import { prisma } from "@/lib/prisma";
-import GalleryCategoryPageClient from "./GalleryCategoryPageClient";
 import SessionProviderWrapper from "@/components/Admin/SessionProviderWrapper";
-import { getServerSession } from "next-auth"; // Get session using next-auth
-import { authOptions } from "@/lib/auth"; // Your auth options
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import GalleryCategoryPageClient from "./GalleryCategoryPageClient";
 
 export default async function GalleryPageWrapper() {
-
 	const session = await getServerSession(authOptions);
 
 	const [galleryContent, galleryImages, categories] = await Promise.all([
 		prisma.pageContent.findUnique({
 			where: { pageSlug: 'gallery' }
 		}),
+
 		prisma.galleryImage.findMany({
 			orderBy: { date: 'desc' },
 			select: {
@@ -26,14 +26,13 @@ export default async function GalleryPageWrapper() {
 						category: {
 							select: {
 								id: true,
+								name: true,
 								slug: true,
-								name: true
-							}
-						}
-					}
-				}
-			}
-
+							},
+						},
+					},
+				},
+			},
 		}),
 
 		prisma.category.findMany({
@@ -41,19 +40,24 @@ export default async function GalleryPageWrapper() {
 				id: true,
 				name: true,
 				slug: true,
-				_count: { select: { galleryPosts: true } } // Fetch gallery post count
+				_count: { select: { galleryPosts: true } }
 			}
 		})
 	]);
+
+	// Transform galleryImages to match the expected format
+	const transformedGalleryImages = galleryImages.map(image => ({
+		...image,
+		categories: image.categories.map(item => item.category)
+	}));
 
 	return (
 		<SessionProviderWrapper session={session}>
 			<GalleryCategoryPageClient
 				galleryContent={galleryContent}
-				initialImages={galleryImages}
+				initialImages={transformedGalleryImages} // Use transformed data
 				categories={categories}
 			/>
 		</SessionProviderWrapper>
 	);
 }
-

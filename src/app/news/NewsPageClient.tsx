@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/layout/HeroSection";
 import Button from "@/components/ui/button";
-import ImageUpload from "@/components/admin/ImageUpload";
+import ImageUpload from "@/components/Admin/ImageUpload";
 import CategorySidebar from "@/components/layout/CategorySidebar";
-import parse from 'html-react-parser';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -20,10 +17,6 @@ import TextAlign from '@tiptap/extension-text-align';
 import Color from '@tiptap/extension-color';
 import TextStyle from '@tiptap/extension-text-style';
 import Placeholder from '@tiptap/extension-placeholder';
-
-// Load React-Quill dynamically to prevent SSR issues
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
-import "react-quill/dist/quill.snow.css";
 
 
 interface Category {
@@ -34,8 +27,14 @@ interface Category {
     newsPosts: number;
   };
 }
+interface NewPost {
+  title: string;
+  content: string;
+  image: string | null; // Allow string or null
+  categories: string[];
+}
 
-// NewsPageProps interface
+
 interface NewsPageProps {
   newsContent: {
     title: string;
@@ -47,8 +46,8 @@ interface NewsPageProps {
     title: string;
     content: string;
     image: string;
-    date: string;
-    categories: Category[];
+    date: Date;
+    categories: { id: string; name: string; slug: string }[]; // Categories associated with the post
   }[];
   categories: Category[]; // Categories passed as prop
 }
@@ -135,7 +134,13 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
   const [title, setTitle] = useState(newsContent?.title);
 
   const [showAddPost, setShowAddPost] = useState(false);
-  const [newPost, setNewPost] = useState({ title: "", content: "", image: null });
+  const [newPost, setNewPost] = useState<NewPost>({
+    title: "",
+    content: "",
+    image: null, // Initial value is null
+    categories: [],
+  });
+
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categoryList, setCategoryList] = useState<Category[]>(categories);
   const [newCategoryName, setNewCategoryName] = useState<string>("");
@@ -218,7 +223,7 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
     }
 
     try {
-      const categoryIds: number[] = [];
+      const categoryIds: string[] = [];
 
       // If a category is selected, add its ID
       if (selectedCategory) {
@@ -249,7 +254,7 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
       const createdPost = await response.json();
       setPosts([createdPost, ...posts]); // Add new post to state
       setShowAddPost(false);
-      setNewPost({ title: "", content: "", image: null });
+      setNewPost({ title: "", content: "", image: null, categories: [] });
       setNewCategoryName(""); // Reset category input
       setSelectedCategory(null); // Reset selected category to null
 
@@ -343,7 +348,7 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
       {/* Hero Section */}
       <HeroSection
         title={newsContent?.title || 'News'}
-        heroImage={newsContent?.heroImage}
+        heroImage={heroImage}
         isAdmin={isAdmin}
         onEditClick={() => setEditHero(true)}
       />
@@ -509,7 +514,7 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
                     {/* Categories under the date */}
                     <p className="text-sm font-semibold text-ss-blue">
                       {post.categories.map((cat, index) => {
-                        const categoryName = cat.category?.name || "Uncategorized";
+                        const categoryName = cat?.name || "Uncategorized";
 
                         const slug = categoryName.toLowerCase().replace(/\s+/g, "-");
 

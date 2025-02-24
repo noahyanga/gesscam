@@ -19,7 +19,9 @@ export default async function ExecBodyPageWrapper() {
         id: true,
         name: true,
         position: true,
-        imageUrl: true
+        imageUrl: true,
+        order: true,
+        createdAt: true
       }
     })
   ]);

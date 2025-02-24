@@ -24,11 +24,19 @@ interface Category {
 	}
 }
 
+interface NewImage {
+	title: string;
+	description: string;
+	imageUrl: string | null; // Allow string or null
+	categories: string[];
+}
+
 interface GalleryImage {
 	id: string;
 	title: string;
 	description: string;
 	imageUrl: string;
+	date: Date;
 	categories: { id: string; name: string; slug: string }[];
 }
 
@@ -57,12 +65,14 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 	const [draftHeroImage, setDraftHeroImage] = useState(heroImage);
 	const [modalImage, setModalImage] = useState<GalleryImage | null>(null);
 	const [showAddImage, setShowAddImage] = useState(false);
-	const [newImage, setNewImage] = useState({
-
+	const [newImage, setNewImage] = useState<NewImage>({
 		title: "",
 		description: "",
-		imageUrl: ""
+		imageUrl: null, // Initial value is null
+		categories: [],
 	});
+
+
 
 
 	const [categoryList, setCategoryList] = useState<Category[]>(categories);
@@ -79,7 +89,7 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 
 		// Filter images based on the category slug
 		const filteredImages = initialImages.filter((image) =>
-			image.categories.some((cat) => cat.category.slug === slug)
+			image.categories.some((cat) => cat.slug === slug)
 		);
 
 		console.log("Filtered Images:", filteredImages);
@@ -116,7 +126,7 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 			return;
 		}
 		try {
-			const categoryIds: number[] = [];
+			const categoryIds: string[] = [];
 			if (selectedCategory) {
 				categoryIds.push(selectedCategory);
 			}
@@ -139,7 +149,7 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 			const createdImage = await response.json();
 			setImages([createdImage, ...images]);
 			setShowAddImage(false);
-			setNewImage({ title: "", description: "", imageUrl: null });
+			setNewImage({ title: "", description: "", imageUrl: null, categories: [] });
 			setNewCategoryName("");
 			setSelectedCategory(null);
 		} catch (err) {
@@ -269,7 +279,7 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 								<ImageUpload value={draftHeroImage} onChange={setDraftHeroImage} />
 								<div className="flex gap-4 mt-4">
 									<Button onClick={handleSaveHeroImage}>Save Changes</Button>
-									<Button onClick={() => setEditHero(false)} variant="outline">
+									<Button onClick={() => setEditHero(false)} variant="outlined">
 										Cancel
 									</Button>
 								</div>
@@ -310,7 +320,6 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 						)}
 
 						{/* Search and Sort */}
-						{/* Search and Sort */}
 						<div className="mt-10 mb-8 px-4">
 
 							{/* Search and Filter Row */}
@@ -324,7 +333,11 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 								/>
 								<select
 									value={sortOrder}
-									onChange={(e) => setSortOrder(e.target.value)}
+									onChange={(e) => {
+										if (e.target.value === "newest" || e.target.value === "oldest") {
+											setSortOrder(e.target.value);
+										}
+									}}
 									className="w-full sm:w-auto p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500"
 								>
 									<option value="newest">Newest First</option>
@@ -366,8 +379,9 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 												{/* Categories under the date */}
 												<p className="text-sm font-semibold text-ss-blue">
 													{item.categories.map((cat, index) => {
-														const categoryName = cat.category?.name || "Uncategorized";
-														const slug = categoryName.toLowerCase().replace(/\s+/g, "-"); // Convert to lowercase and replace spaces
+														const categoryName = cat.name || "Uncategorized";
+														const slug = cat.slug; // Use the slug from the category object
+
 														return (
 															<span key={slug}>
 																<Link href={`/gallery/categories/${slug}`} className="hover:underline hover:text-blue-600">
@@ -378,6 +392,7 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 														);
 													})}
 												</p>
+
 
 
 
@@ -502,7 +517,7 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 
 							<div className="flex justify-end gap-4 mt-4">
 								<Button onClick={handleAddImage}>Save</Button>
-								<Button variant="outline" onClick={() => setShowAddImage(false)}>
+								<Button variant="outlined" onClick={() => setShowAddImage(false)}>
 									Cancel
 								</Button>
 							</div>

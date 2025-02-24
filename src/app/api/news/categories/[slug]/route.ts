@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request, { params }: { params?: { slug?: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+	const params = await props.params;
 	const slug = params?.slug;
 
 	try {
@@ -11,13 +12,17 @@ export async function GET(req: Request, { params }: { params?: { slug?: string }
 				where: { slug },
 				include: {
 					newsPosts: {
-						orderBy: { date: 'desc' },
 						select: {
-							id: true,
-							title: true,
-							content: true,
-							image: true,
-							date: true,
+							newsPost: {
+								select: {
+									id: true,
+									title: true,
+									content: true,
+									image: true,
+									date: true,
+								},
+							},
+
 						},
 					},
 				},
@@ -29,7 +34,8 @@ export async function GET(req: Request, { params }: { params?: { slug?: string }
 			}
 
 			// Return the category and its posts
-			return NextResponse.json({ category, posts: category.newsPosts });
+			const posts = category.newsPosts.map((np) => np.newsPost);
+			return NextResponse.json({ category, posts });
 		} else {
 			// Fetch all news posts and categories
 			const posts = await prisma.newsPost.findMany({
@@ -42,14 +48,17 @@ export async function GET(req: Request, { params }: { params?: { slug?: string }
 					date: true,
 					categories: {
 						select: {
-							id: true,
-							name: true,
-							slug: true,  // Ensure slug is included
+							category: {
+								select: {
+									id: true,
+									name: true,
+									slug: true, // Ensure slug is included
+								},
+							},
 						},
 					},
 				},
 			});
-
 
 			const categories = await prisma.category.findMany({
 				select: {
@@ -77,5 +86,3 @@ export async function GET(req: Request, { params }: { params?: { slug?: string }
 		);
 	}
 }
-
-

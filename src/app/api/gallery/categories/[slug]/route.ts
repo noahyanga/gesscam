@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request, { params }: { params?: { slug?: string } }) {
-	const slug = params?.slug;
+export async function GET(req: Request, props: { params: Promise<{ slug: string }> }) {
+	const params = await props.params;
+	const slug = params.slug;
 
 	try {
 		if (slug) {
@@ -10,26 +11,27 @@ export async function GET(req: Request, { params }: { params?: { slug?: string }
 				where: { slug },
 				include: {
 					galleryPosts: {
-						orderBy: { date: "desc" },
 						select: {
-							id: true,
-							title: true,
-							description: true,
-							imageUrl: true,
-							date: true,
+							galleryImage: {
+								select: {
+									id: true,
+									title: true,
+									description: true,
+									imageUrl: true,
+									date: true,
+								},
+							},
 						},
 					},
 				},
 			});
 
-
-
-
 			if (!category) {
 				return NextResponse.json({ error: "Category not found" }, { status: 404 });
 			}
+			const posts = category.galleryPosts.map((gp) => gp.galleryImage);
 
-			return NextResponse.json({ category, posts: category.galleryPosts });
+			return NextResponse.json({ category, posts });
 		} else {
 			// Fetch all gallery posts and categories
 			const posts = await prisma.galleryImage.findMany({
@@ -42,9 +44,13 @@ export async function GET(req: Request, { params }: { params?: { slug?: string }
 					date: true,
 					categories: {
 						select: {
-							id: true,
-							name: true,
-							slug: true,
+							category: {
+								select: {
+									id: true,
+									name: true,
+									slug: true,
+								},
+							},
 						},
 					},
 				},
@@ -72,11 +78,23 @@ export async function GET(req: Request, { params }: { params?: { slug?: string }
 }
 
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 	const { id } = params;
 	const { title, description, imageUrl, categoryId } = await req.json();
 
 	try {
+		// Disconnect all existing categories.
+		await prisma.galleryImage.update({
+			where: { id },
+			data: {
+				categories: {
+					deleteMany: {},
+				},
+			},
+		});
+
+		// Connect the new category.
 		const updatedPost = await prisma.galleryImage.update({
 			where: { id },
 			data: {
@@ -84,7 +102,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 				description,
 				imageUrl,
 				categories: {
-					connect: { id: categoryId },  // Connect the selected category
+					create: {
+						categoryId: categoryId,
+					},
 				},
 			},
 		});

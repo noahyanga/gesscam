@@ -15,19 +15,30 @@ import Color from '@tiptap/extension-color';
 import TextStyle from '@tiptap/extension-text-style';
 import Placeholder from "@tiptap/extension-placeholder";
 
+interface Category {
+	id: string;
+	name: string;
+	slug: string;
+	_count: {
+		newsPosts: number;
+	};
+}
+
 interface NewsPostEditClientProps {
 	post: {
 		id: string;
 		title: string;
 		content: string;
-		date: string;
-		image?: string;
+		date: Date;
+		image: string;
 		comments: {
 			id: string;
 			content: string;
-			createdAt: string;
+			createdAt: Date;
 			userId: string;
-			username: string;
+			authorId: string;
+			postId: string;
+			author: { username: string };
 		}[];
 	};
 	categories: Category[];
@@ -115,7 +126,7 @@ export default function NewsEditPage({ post: initialPost, categories }: NewsPost
 	});
 
 
-	const [selectedCategory, setSelectedCategory] = useState("");
+	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 	const [categoryList, setCategoryList] = useState<Category[]>(categories);
 	const [newCategoryName, setNewCategoryName] = useState("");
 	const [loading, setLoading] = useState(false);
@@ -172,11 +183,6 @@ export default function NewsEditPage({ post: initialPost, categories }: NewsPost
 			const categoryIds: string[] = [];
 			if (selectedCategory) {
 				categoryIds.push(selectedCategory);
-			}
-
-			if (newCategoryName) {
-				const newCategoryId = await createCategory(newCategoryName);
-				if (newCategoryId) categoryIds.push(newCategoryId);
 			}
 
 			// Ensure categoryIds is not empty

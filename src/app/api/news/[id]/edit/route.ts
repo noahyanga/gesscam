@@ -3,12 +3,12 @@ import { NextResponse } from "next/server";
 
 export async function GET(
 	request: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-
+		const resolvedParams = await params;
 		const post = await prisma.newsPost.findUnique({
-			orderBy: { date: 'desc' },
+			where: { id: resolvedParams.id },
 			select: {
 				id: true,
 				title: true,
@@ -16,16 +16,20 @@ export async function GET(
 				image: true,
 				categories: {
 					select: {
-						id: true,
-						name: true,
-						slug: true,
+						category: {
+							select: {
+								id: true,
+								name: true,
+								slug: true,
+							},
+						},
 					},
 				},
-				date: true
-			}
+				date: true,
+			},
 		});
 
-		const category = await prisma.category.findMany({
+		const categories = await prisma.category.findMany({
 			select: {
 				id: true,
 				name: true,
@@ -46,8 +50,12 @@ export async function GET(
 				{ status: 404 }
 			)
 		}
+		return NextResponse.json({
+			post,
+			categories: post.categories.map((item) => item.category), // Extract category data
+			allCategories: categories,
+		});
 
-		return NextResponse.json(post, category)
 	} catch (error) {
 		console.error('API Error:', error)
 		return NextResponse.json(
@@ -58,10 +66,10 @@ export async function GET(
 }
 
 
-export async function PUT(req: Request, context: { params: { id: string } }) {
+export async function PUT(req: Request, context: { params: Promise<{ id: string }> }) {
 	try {
 		// Access params correctly using context.params
-		const { id } = context.params;
+		const { id } = (await context.params);
 		const { title, content, image, categoryIds } = await req.json();
 		console.log("Updated post with new categories:", { id, title, content, image, categoryIds });
 
@@ -107,7 +115,7 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
 
 export async function DELETE(
 	req: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	// Await params as required by Next.js App Router
 	const { id } = await params;

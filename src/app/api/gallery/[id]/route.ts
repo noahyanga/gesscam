@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma';
 
 export const revalidate = 60; // Revalidate every 60 seconds
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 	try {
 		const image = await prisma.galleryImage.findUnique({
 			where: { id: params.id },
@@ -21,7 +22,8 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 	const { id } = params;
 	const { title, description, imageUrl, categoryIds } = await req.json();
 
@@ -61,10 +63,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
 }
 
 
-
 export async function DELETE(
 	req: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	// Await params as required by Next.js App Router
 	const { id } = await params;

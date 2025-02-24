@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
 export async function DELETE(
 	req: Request,
-	{ params }: { params: { id: string } | Promise<{ id: string }> }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	const { id } = await params;
 	if (!id) {

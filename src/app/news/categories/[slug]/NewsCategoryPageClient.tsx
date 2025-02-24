@@ -12,10 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CategorySidebar from "@/components/layout/CategorySidebar";
 import Button from "@/components/ui/button";
 
-import ImageUpload from "@/components/admin/ImageUpload";
-import dynamic from "next/dynamic";
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
-import "react-quill/dist/quill.snow.css";
+import ImageUpload from "@/components/Admin/ImageUpload";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
@@ -23,7 +20,12 @@ import Color from '@tiptap/extension-color';
 import TextStyle from '@tiptap/extension-text-style';
 import Placeholder from '@tiptap/extension-placeholder';
 
-
+interface NewPost {
+	title: string;
+	content: string;
+	image: string | null; // Allow string or null
+	categories: string[];
+}
 
 interface Category {
 	id: string;
@@ -46,7 +48,7 @@ interface NewsPageProps {
 		title: string;
 		content: string;
 		image: string;
-		date: string;
+		date: Date;
 		categories: { id: string; name: string; slug: string }[]; // Categories associated with the post
 	}[];
 	categories: Category[]; // Categories passed as prop
@@ -117,9 +119,6 @@ const MenuBar = ({ editor }: { editor: any }) => {
 	);
 };
 
-
-
-
 export default function NewsCategoryPageClient({ newsContent, initialPosts, categories }: NewsPageProps) {
 	const params = useParams();
 	const { slug } = params as { slug: string };
@@ -135,11 +134,18 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 	const [draftHeroImage, setDraftHeroImage] = useState(heroImage);
 
 	const [showAddPost, setShowAddPost] = useState(false);
-	const [newPost, setNewPost] = useState({ title: "", content: "", image: null });
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 	const [categoryList, setCategoryList] = useState<Category[]>(categories);
 	const [newCategoryName, setNewCategoryName] = useState<string>("");
 	const [showAddCategory, setShowAddCategory] = useState(false);
+	const [newPost, setNewPost] = useState<NewPost>({
+		title: "",
+		content: "",
+		image: null, // Initial value is null
+		categories: [],
+	});
+
+
 
 
 	// Search and Filter States
@@ -171,7 +177,7 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 			setEditHero(false);
 		} catch (err) {
 			console.error("Error updating news content:", err);
-			alert(`Failed to update news content: ${err.message}`);
+			alert(`Failed to update news content: ${err}`);
 		}
 	};
 
@@ -199,7 +205,7 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 		}
 
 		try {
-			const categoryIds: number[] = [];
+			const categoryIds: string[] = [];
 
 			// If a category is selected, add its ID
 			if (selectedCategory) {
@@ -230,7 +236,7 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 			const createdPost = await response.json();
 			setPosts([createdPost, ...posts]); // Add new post to state
 			setShowAddPost(false);
-			setNewPost({ title: "", content: "", image: null });
+			setNewPost({ title: "", content: "", image: null, categories: [] });
 			setNewCategoryName(""); // Reset category input
 			setSelectedCategory(null); // Reset selected category to null
 
@@ -287,7 +293,7 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 		if (!slug) return;
 
 		const filteredPosts = initialPosts.filter((post) => {
-			return post.categories.some((cat) => cat.category.slug === slug);
+			return post.categories.some((cat) => cat.slug === slug);
 		});
 
 		console.log("Filtered Posts:", filteredPosts);
@@ -462,11 +468,11 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 										{/* Categories under the date */}
 										<p className="text-sm font-semibold text-ss-blue">
 											{post.categories.map((cat, index) => {
-												const slug = cat.category.name.toLowerCase().replace(/\s+/g, "-"); // Convert to lowercase and replace spaces
+												const slug = cat.name.toLowerCase().replace(/\s+/g, "-"); // Convert to lowercase and replace spaces
 												return (
 													<span key={slug}>
 														<Link href={`/news/categories/${slug}`} className="hover:underline hover:text-blue-600">
-															{cat.category.name}
+															{cat.name}
 														</Link>
 														{index < post.categories.length - 1 && ", "}
 													</span>

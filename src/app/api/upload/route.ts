@@ -1,4 +1,5 @@
 // src/app/api/upload/route.ts
+// src/app/api/upload/route.ts
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -15,6 +16,10 @@ export async function POST(req: Request) {
 
 	if (!file) {
 		return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+	}
+
+	if (typeof file === 'string') {
+		return NextResponse.json({ error: "file was a string, and not a file" }, { status: 400 });
 	}
 
 	// Allowed formats for security
@@ -55,4 +60,3 @@ export async function POST(req: Request) {
 		return NextResponse.json({ error: "Upload failed" }, { status: 500 });
 	}
 }
-

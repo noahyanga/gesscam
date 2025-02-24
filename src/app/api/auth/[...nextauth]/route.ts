@@ -1,4 +1,3 @@
-// In your NextAuth configuration (e.g., [..nextauth].js or route.ts)
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaClient } from "@prisma/client";
@@ -39,16 +38,18 @@ const authOptions = {
 						throw new Error("Invalid credentials");
 					}
 
-					// Return user with the role to be included in the session
 					return { id: user.id, email: user.email, role: user.role, username: user.username };
-				} catch (error) {
+				} catch (error: any) {
 					console.error("Authentication error:", error.message);
 					return null;
 				}
 			},
 		}),
 	],
-	session: { strategy: "jwt" },
+	session: {
+		strategy: "jwt" as const, // Correct usage
+
+	}, // Missing closing brace here
 	callbacks: {
 		async jwt({ token, user }) {
 			if (user) {
@@ -64,6 +65,7 @@ const authOptions = {
 			session.user.email = token.email;
 			session.user.username = token.username || "unknown";
 			session.user.role = token.role;
+			console.log("session:", session);
 
 			return session;
 		},
@@ -79,4 +81,3 @@ const authOptions = {
 // Named exports for GET and POST requests
 export const GET = NextAuth(authOptions);
 export const POST = NextAuth(authOptions);
-

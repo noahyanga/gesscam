@@ -5,18 +5,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth"; // Adjust to your auth config
 
 // Edit a specific comment
-export async function PATCH(req, { params }) {
-	const session = await getServerSession(authOptions);
-	if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function PATCH(req, props) {
+    const params = await props.params;
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-	const { content } = await req.json();
-	const { postId, commentId } = params;
+    const { content } = await req.json();
+    const { postId, commentId } = params;
 
-	if (!content.trim()) {
+    if (!content.trim()) {
 		return NextResponse.json({ error: "Comment content cannot be empty" }, { status: 400 });
 	}
 
-	try {
+    try {
 		const updatedComment = await prisma.comment.update({
 			where: { id: commentId },
 			data: { content },
@@ -30,13 +31,14 @@ export async function PATCH(req, { params }) {
 }
 
 // Delete a specific comment
-export async function DELETE(req, { params }) {
-	const session = await getServerSession(authOptions);
-	if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function DELETE(req, props) {
+    const params = await props.params;
+    const session = await getServerSession(authOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-	const { postId, commentId } = params;
+    const { postId, commentId } = params;
 
-	try {
+    try {
 		const deletedComment = await prisma.comment.delete({
 			where: { id: commentId },
 		});

@@ -1,17 +1,16 @@
-
-import { prisma } from "@/lib/prisma"; // Import prisma to fetch content
+import { prisma } from "@/lib/prisma";
 import NewsEditPage from "./NewsPostEditClient";
-import { getServerSession } from "next-auth"; // Get session using next-auth
-import { authOptions } from "@/lib/auth"; // Your auth options
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import SessionProviderWrapper from "@/components/Admin/SessionProviderWrapper";
+import { redirect } from "next/navigation";
 
 interface EditPostPageProps {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }
 
 export default async function NewsPageWrapper({ params }: EditPostPageProps) {
-	// Fetch session on the server-side
-	const { id } = params;  // Destructure the ID from params
+	const { id } = await params;
 	const session = await getServerSession(authOptions);
 
 	const post = await prisma.newsPost.findUnique({
@@ -20,7 +19,7 @@ export default async function NewsPageWrapper({ params }: EditPostPageProps) {
 			comments: {
 				orderBy: { createdAt: "desc" },
 				include: {
-					author: { select: { username: true } }, // Directly include the username in the comment
+					author: { select: { username: true } },
 				},
 			},
 		},
@@ -31,23 +30,26 @@ export default async function NewsPageWrapper({ params }: EditPostPageProps) {
 			id: true,
 			name: true,
 			slug: true,
-			_count: { select: { newsPosts: true } } // Ensure this is included
+			_count: { select: { newsPosts: true } }
 		},
 	});
 
+	if (!post) {
+		redirect("/404"); // Redirect to 404 if post is null
+	}
 
+	// Add userId to comments
+	const updatedPost = {
+		...post,
+		comments: post.comments.map(comment => ({
+			...comment,
+			userId: comment.authorId,
+		}))
+	};
 
-
-
-	// Return the NewsPageClient component with the fetched content, posts, categories, and session
 	return (
 		<SessionProviderWrapper session={session}>
-			<NewsEditPage
-				post={post}
-				categories={categories}
-			/>
+			<NewsEditPage post={updatedPost} categories={categories} />
 		</SessionProviderWrapper>
 	);
 }
-
-

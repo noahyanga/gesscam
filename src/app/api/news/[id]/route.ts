@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { connect } from 'http2';
+import { promises } from 'dns';
 
-export async function GET(
-	request: Request,
-	{ params }: { params: { id: string } }
-) {
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 
 	const { id } = params;
 	try {
@@ -62,7 +61,7 @@ export async function GET(
 
 export async function DELETE(
 	req: Request,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	// Await params as required by Next.js App Router
 	const { id } = await params;
@@ -107,7 +106,8 @@ export async function DELETE(
 	}
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, props: { params: Promise<{ id: string }> }) {
+	const params = await props.params;
 	const { id } = params;
 	const { title, content, image, categoryId } = await req.json(); // Get updated values from the request body
 
