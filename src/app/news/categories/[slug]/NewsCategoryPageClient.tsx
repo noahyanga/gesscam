@@ -405,7 +405,7 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 						<option value="" disabled>Select a category</option>
 						{categoryList.map((cat) => (
 							<option key={cat.id} value={cat.id}>
-								{cat.name}
+								{cat?.name}
 							</option>
 						))}
 					</select>
@@ -468,17 +468,22 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 										{/* Categories under the date */}
 										<p className="text-sm font-semibold text-ss-blue">
 											{post.categories.map((cat, index) => {
-												const slug = cat.name.toLowerCase().replace(/\s+/g, "-"); // Convert to lowercase and replace spaces
+												const categoryName = cat?.name || "Uncategorized";
+
+												const slug = categoryName.toLowerCase().replace(/\s+/g, "-");
+
 												return (
 													<span key={slug}>
 														<Link href={`/news/categories/${slug}`} className="hover:underline hover:text-blue-600">
-															{cat.name}
+															{categoryName}
 														</Link>
 														{index < post.categories.length - 1 && ", "}
 													</span>
 												);
 											})}
 										</p>
+
+
 
 
 										{/* Post Preview */}
