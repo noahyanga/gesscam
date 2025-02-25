@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+
+console.log("env:", process.env);
+
 export async function PUT(req: Request) {
 	try {
 		const { heroImage, content } = await req.json();

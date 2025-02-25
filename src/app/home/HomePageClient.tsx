@@ -17,6 +17,7 @@ import Button from "@/components/ui/button";
 import ImageUpload from "@/components/Admin/ImageUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import '@/app/globals.css';
+import { env } from "process";
 
 interface NewsPost {
   id: string;
@@ -133,6 +134,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
 
 
 
+  console.log("env:", env.DATABASE_URL);
 
   const handleSaveHomeContent = async () => {
     try {
