@@ -425,7 +425,7 @@ export default function GalleryPageClient({ galleryContent, initialImages, categ
       {/* Sidebar and Main Content */}
       <div className="flex flex-col md:flex-row flex-grow">
         <div className="flex flex-col md:flex-row flex-grow">
-          <CategorySidebar categories={categories} basePath="gallery" className="w-full md:w-full" />
+          <CategorySidebar categories={categories} basePath="gallery" />
 
 
           <section className="py-16 bg-gradient-to-b from-ss-white to-ss-blue/10 w-full md:w-3/4 px-4 sm:px-6 md:px-8">

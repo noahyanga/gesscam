@@ -464,7 +464,6 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
         <CategorySidebar
           categories={categories}
           basePath="news" // This ensures the links are relative to "news"
-          className="w-full md:w-full"
         />
 
         {/* Main content */}

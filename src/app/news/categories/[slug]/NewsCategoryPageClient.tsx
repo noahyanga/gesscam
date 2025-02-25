@@ -424,7 +424,7 @@ export default function NewsCategoryPageClient({ newsContent, initialPosts, cate
 
 			{/* Category Sidebar */}
 			<div className="flex flex-col md:flex-row flex-grow">
-				<CategorySidebar categories={categories} basePath="news" className="w-full md:w-full" />
+				<CategorySidebar categories={categories} basePath="news" />
 
 				<main className="flex-grow p-4">
 					{/* Search Bar and Filter */}

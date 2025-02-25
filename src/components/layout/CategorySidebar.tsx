@@ -35,7 +35,7 @@ export default function CategorySidebar({ categories, basePath = "", className =
   );
 
   return (
-    <aside className={`${className} bg-white shadow-md rounded-lg p-4 border border-gray-200 w-full md:w-72`}>
+    <aside className={`${className} bg-white shadow-md rounded-lg p-4 border border-gray-200 w-full md:w-1/4`}>
       <h3 className="text-xl font-semibold mb-4 text-gray-800">Categories</h3>
       <ul className="space-y-2">
         {/* "All" category link */}

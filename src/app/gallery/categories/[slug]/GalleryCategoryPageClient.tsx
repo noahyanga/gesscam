@@ -263,7 +263,7 @@ export default function GalleryCategoryPageClient({ galleryContent, initialImage
 
 			<main className=" flex flex-col md:flex-row flex-grow">
 				<div className="flex flex-col md:flex-row flex-grow">
-					<CategorySidebar categories={categories} basePath="gallery" className="w-full md:w-full" />
+					<CategorySidebar categories={categories} basePath="gallery" />
 
 					<div className="flex-1 ml-8">
 						{/* Admin: Edit Hero Section */}
