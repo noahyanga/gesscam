@@ -230,12 +230,6 @@ export default function NewsPageClient({ newsContent, initialPosts, categories }
         categoryIds.push(selectedCategory);
       }
 
-      // If creating a new category, add its ID
-      if (newCategoryName) {
-        const newCategoryId = await createCategory(newCategoryName);
-        if (newCategoryId) categoryIds.push(newCategoryId);
-      }
-
       const postData = {
         title: newPost.title,
         content: newPost.content,

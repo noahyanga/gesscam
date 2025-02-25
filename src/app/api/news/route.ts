@@ -56,3 +56,37 @@ export async function GET() {
 		);
 	}
 }
+
+
+export async function POST(req: Request) {
+	try {
+		const { title, content, image, categoryIds } = await req.json();
+
+		if (!title || !content || !image) {
+			return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+		}
+
+		// Create news post
+		const newPost = await prisma.newsPost.create({
+			data: {
+				title,
+				content,
+				image,
+				categories: {
+					create: categoryIds.map((categoryId) => ({
+						category: { connect: { id: categoryId } },
+					})),
+				},
+			},
+			include: { categories: true },
+		});
+
+		return NextResponse.json(newPost, { status: 201 });
+
+	} catch (error) {
+		console.error("Error creating post:", error);
+		return NextResponse.json({ error: "Server error", details: error }, { status: 500 });
+	}
+}
+
+
