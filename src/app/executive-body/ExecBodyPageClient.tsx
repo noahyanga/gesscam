@@ -222,36 +222,39 @@ export default function ExecBodyPageClient({ execContent, initialMembers }: Exec
       {/* Members Grid Section */}
       <section className="py-10 px-4 mb-10 mt-10">
         <div className="container mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {members.map((member) => (
               <Card
                 key={member.id}
-                className="bg-white shadow-md hover:shadow-lg transition duration-300 p-4 flex flex-col items-center text-center"
+                className="bg-gray-50 rounded-xl shadow-md hover:shadow-lg transition duration-300 p-4 sm:p-6 flex flex-col items-center text-center"
               >
-                <Image
-                  src={member.imageUrl}
-                  alt={member.name}
-
-                  width={300}
-                  height={500}
-                  className="w-64 h-64 rounded-full object-cover border-4 border-gray-300 shadow-sm"
-                />
-                <CardTitle className="text-xl font-bold text-gray-900 mt-3">
+                <div className="relative w-72 h-72 sm:w-56 sm:h-56 mb-3 sm:mb-4"> {/* Increased mobile image size */}
+                  <Image
+                    src={member.imageUrl}
+                    alt={member.name}
+                    layout="fill"
+                    objectFit="cover"
+                    className="rounded-full border-2 border-gray-200 shadow-sm"
+                  />
+                </div>
+                <CardTitle className="text-2xl font-semibold text-gray-900 mt-2">
                   {member.name}
                 </CardTitle>
-                <p className="text-sm text-gray-600">{member.position}</p>
+                <p className="text-lg text-gray-600 mt-1">
+                  {member.position}
+                </p>
 
                 {isAdmin && (
-                  <div className="mt-3 flex space-x-3">
+                  <div className="mt-3 flex space-x-2">
                     <Button
                       onClick={() => setEditMember(member)}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded-md text-xs sm:px-3 sm:py-2 sm:text-sm transition-colors duration-200"
                     >
                       Edit
                     </Button>
                     <Button
                       onClick={() => handleDeleteMember(member.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-sm"
+                      className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-md text-xs sm:px-3 sm:py-2 sm:text-sm transition-colors duration-200"
                     >
                       Delete
                     </Button>
@@ -262,6 +265,7 @@ export default function ExecBodyPageClient({ execContent, initialMembers }: Exec
           </div>
         </div>
       </section>
+
 
 
 

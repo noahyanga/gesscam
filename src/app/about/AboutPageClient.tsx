@@ -302,7 +302,7 @@ export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageP
           animate={{ opacity: 1, y: 0 }}
           className="relative z-10 text-center max-w-4xl px-4"
         >
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-xl">
+          <h1 className="text-7xl md:text-7xl font-bold text-white mb-6 drop-shadow-xl">
             {title}
           </h1>
           {isAdmin && (
@@ -402,8 +402,8 @@ export default function AboutPageClient({ aboutContent, aboutPosts }: AboutPageP
               </>
             ) : (
               <>
-                <h3 className="text-2xl sm:text-3xl text-ss-blue font-semibold mb-4">{post.title}</h3>
-                <div className="prose max-w-none [&_li]:leading-[1.4] [&_li>p]:leading-[1.2]" dangerouslySetInnerHTML={{ __html: post.content }} />
+                <h3 className="text-4xl sm:text-4xl text-ss-blue font-semibold mb-4">{post.title}</h3>
+                <div className="prose prose-xl max-w-none [&_li]:leading-[1.4] [&_li>p]:leading-[1.2]" dangerouslySetInnerHTML={{ __html: post.content }} />
                 {isAdmin && (
                   <div className="mt-4 flex space-x-4 justify-center">
                     <Button onClick={() => startEditingPost(post.id, post.title, post.content)} className="bg-blue-500 text-white px-6 py-2 rounded-md">

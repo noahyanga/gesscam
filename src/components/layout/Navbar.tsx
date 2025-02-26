@@ -29,7 +29,7 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const previousSession = useRef<Session | null>(null); // Corrected useRef
+  const previousSession = useRef<Session | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -152,14 +152,14 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         <div className="md:hidden">
           <Button variant="text" onClick={toggleMenu} aria-label="Toggle menu">
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isOpen ? <X className="h-6 w-6 text-blue-50" /> : <Menu className="h-6 w-6" />}
           </Button>
         </div>
       </div>
 
       {/* Mobile Dropdown */}
       {isOpen && (
-        <div className="md:hidden px-4 pt-4 pb-3 space-y-3 ss-blue/90 backdrop-blur-sm shadow-sm py-3">
+        <div className="md:hidden px-3 pt-2 pb-3 space-y-3 ss-blue/90 backdrop-blur-sm ">
           {navItems.map((item, index) => (
             <div key={index}>
               {item.dropdown ? (
@@ -192,6 +192,30 @@ const Navbar = () => {
               )}
             </div>
           ))}
+
+          <div className=" my-3"></div> {/* divider */}
+
+          {/* Mobile Login/Logout */}
+          {session ? (
+            <div className="flex flex-col items-start space-y-3 mb-10">
+              <span className="text-green-400 font-semibold">
+                {isAdmin ? "Admin Panel" : `Welcome, ${username || "User"}`}
+              </span>
+              <button
+                onClick={() => signOut()}
+                className="bg-red-600 px-3 py-1 rounded text-white hover:bg-red-500 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="bg-blue-500 px-2 py-1 rounded text-white hover:bg-blue-400 transition-colors mr-5"
+            >
+              Login
+            </Link>
+          )}
         </div>
       )}
     </nav>
@@ -199,4 +223,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

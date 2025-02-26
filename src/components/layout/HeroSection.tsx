@@ -68,7 +68,7 @@ export default function HeroSection({
         className="relative z-10 text-center max-w-3xl"
       >
         {/* Title */}
-        <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-xl">
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-xl">
           {title}
         </h1>
 

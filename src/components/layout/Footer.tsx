@@ -99,7 +99,7 @@ const Footer = () => {
         {/* Copyright Section */}
         <div className="mt-16 pt-8 border-t border-white/10">
           <p className="text-gray-300 text-center text-sm pb-5">
-            &copy; {new Date().getFullYear()} GESSCAM. All rights reserved.
+            &copy; {new Date().getFullYear()} GESSCAM Inc.
           </p>
 
           <p className="text-gray-300 text-center text-sm">
@@ -108,7 +108,7 @@ const Footer = () => {
               href="https://www.linkedin.com/in/noah-yanga-9654b61a5/" // Replace YOUR_LINK_HERE with the actual URL
               target="_blank" // Opens the link in a new tab
               rel="noopener noreferrer" // Security best practice for external links
-              className="text-yellow-400 hover:underline" // Adds styling for link appearance
+              className="font-bold text-yellow-400 hover:underline" // Adds styling for link appearance
             >
               Noah Yanga
             </a>

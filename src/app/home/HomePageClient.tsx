@@ -393,11 +393,11 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
               <>
                 <div className="container mx-auto flex flex-col lg:flex-row items-center justify-between gap-6">
                   <div className="w-full lg:w-1/2 text-center lg:text-left">
-                    <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-ss-blue mb-4">
+                    <h3 className="text-5xl sm:text-6xl font-bold text-ss-blue mb-4">
                       {post.title}
                     </h3>
                     <div
-                      className="text-lg sm:text-xl prose max-w-none [&_li]:leading-[1.2] [&_li>p]:leading-[0.8]"
+                      className="text-2xl sm:text-2xl prose max-w-none [&_li]:leading-[1.2] [&_li>p]:leading-[0.8]"
                       dangerouslySetInnerHTML={{ __html: post.content }}
                     />
                     <a
@@ -447,7 +447,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
       {/* Call to Action Section */}
       < section className="py-16 text-center bg-ss-blue text-white" >
         <div className="container mx-auto px-6">
-          <h2 className="text-5xl font-bold mb-6">Get Involved</h2>
+          <h2 className="text-4xl font-bold mb-6">Get Involved</h2>
           <p className="text-2xl mx-auto mb-8 max-w-3xl">
             Join us in making a difference! Whether you want to participate, volunteer, or
             support our initiatives, there&apos;s a place for you.
@@ -465,7 +465,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
 
 
       {/* News Posts Section */}
-      < section className="container mx-auto px-4 mt-8 mb-8" >
+      < section className="container mx-auto px-4 mt-16 mb-8" >
         <h2 className="text-4xl font-bold mb-6 text-ss-blue text-center">Recent News</h2>
         <div className="relative overflow-hidden">
           <div
@@ -512,7 +512,7 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
           {/* Navigation Dots */}
           {chunkedNewsPosts.length > 1 && (
             <div className="flex justify-center mt-4 space-x-2">
-              {chunkedNewsPosts.map((_, index) => (
+              {Array.from({ length: Math.min(3, chunkedNewsPosts.length) }).map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setActiveSlide(index)}
@@ -522,6 +522,8 @@ export default function HomePageClient({ homeContent, homePosts, newsPosts }: Ho
               ))}
             </div>
           )}
+
+
         </div>
 
         <div className="text-center mt-6">
